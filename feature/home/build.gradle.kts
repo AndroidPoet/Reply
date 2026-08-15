@@ -24,23 +24,24 @@ kotlin {
 
     sourceSets {
         commonMain.dependencies {
-            implementation(projects.core.data)
-            implementation(projects.core.designsystem)
-
             implementation(compose.runtime)
             implementation(compose.foundation)
             implementation(compose.material3)
             implementation(compose.ui)
+            implementation(compose.components.resources)
+            implementation(projects.core.data)
+            implementation(projects.core.designsystem)
 
             implementation(libs.kotlinx.coroutines.core)
             implementation(libs.lifecycle.viewmodel)
+            implementation(libs.lifecycle.viewmodel.compose)
             implementation(libs.lifecycle.runtime.compose)
         }
     }
 }
 
 android {
-    namespace = "com.androidpoet.materialnotes.feature.home"
+    namespace = "com.androidpoet.reply.feature.home"
     compileSdk = libs.versions.android.compileSdk.get().toInt()
     defaultConfig {
         minSdk = libs.versions.android.minSdk.get().toInt()
@@ -50,3 +51,4 @@ android {
         targetCompatibility = JavaVersion.VERSION_11
     }
 }
+

@@ -1,0 +1,36 @@
+package com.androidpoet.reply.feature.home
+
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.androidpoet.reply.data.Email
+import com.androidpoet.reply.data.EmailStore
+import com.androidpoet.reply.data.Mailbox
+import dev.zacsweers.metro.Assisted
+import dev.zacsweers.metro.AssistedFactory
+import dev.zacsweers.metro.AssistedInject
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.stateIn
+
+/** Emails for one [Mailbox]; star changes are written straight through to the store. */
+@AssistedInject
+class HomeViewModel(
+    @Assisted val mailbox: Mailbox,
+    private val emailStore: EmailStore,
+) : ViewModel() {
+
+    val emails: StateFlow<List<Email>> = emailStore
+        .getEmails(mailbox)
+        .stateIn(viewModelScope, SharingStarted.Eagerly, emailStore.snapshot(mailbox))
+
+    fun setStarred(email: Email, starred: Boolean) = emailStore.setStarred(email.id, starred)
+
+    fun delete(email: Email) = emailStore.delete(email.id)
+
+    fun archive(email: Email) = emailStore.delete(email.id)
+
+    @AssistedFactory
+    fun interface Factory {
+        fun create(mailbox: Mailbox): HomeViewModel
+    }
+}

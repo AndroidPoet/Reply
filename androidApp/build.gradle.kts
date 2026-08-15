@@ -14,11 +14,11 @@ kotlin {
 }
 
 android {
-    namespace = "com.androidpoet.materialnotes"
+    namespace = "com.androidpoet.reply"
     compileSdk = libs.versions.android.compileSdk.get().toInt()
 
     defaultConfig {
-        applicationId = "com.androidpoet.materialnotes"
+        applicationId = "com.androidpoet.reply"
         minSdk = libs.versions.android.minSdk.get().toInt()
         targetSdk = libs.versions.android.targetSdk.get().toInt()
         versionCode = 1
@@ -42,7 +42,6 @@ android {
 
 dependencies {
     implementation(projects.shared)
-    implementation(projects.core.data)
 
     implementation(compose.runtime)
     implementation(libs.androidx.activity.compose)

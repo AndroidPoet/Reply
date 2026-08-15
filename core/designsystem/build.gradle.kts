@@ -27,18 +27,17 @@ kotlin {
             implementation(compose.foundation)
             implementation(compose.material3)
             implementation(compose.ui)
-
+            implementation(compose.components.resources)
             // Exposed so callers (features + app) get the ViewModel + transition scope types.
             api(libs.lifecycle.viewmodel.compose)
             api(libs.nav3.ui)
-
-            implementation(libs.kotlinx.datetime)
+            api(libs.compose.ui.backhandler)
         }
     }
 }
 
 android {
-    namespace = "com.androidpoet.materialnotes.core.designsystem"
+    namespace = "com.androidpoet.reply.core.designsystem"
     compileSdk = libs.versions.android.compileSdk.get().toInt()
     defaultConfig {
         minSdk = libs.versions.android.minSdk.get().toInt()
@@ -47,4 +46,9 @@ android {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
+}
+compose.resources {
+    publicResClass = true
+    packageOfResClass = "com.androidpoet.reply.designsystem.resources"
+    generateResClass = always
 }

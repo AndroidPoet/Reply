@@ -22,19 +22,23 @@ java {
 
 dependencies {
     implementation(projects.shared)
-    implementation(projects.core.data)
 
     implementation(compose.desktop.currentOs)
     implementation(libs.kotlinx.coroutines.swing)
+
+    testImplementation(compose.desktop.uiTestJUnit4)
+    testImplementation(compose.desktop.currentOs)
+    testImplementation(libs.kotlinx.coroutines.test)
+    testImplementation(kotlin("test-junit"))
 }
 
 compose.desktop {
     application {
-        mainClass = "com.androidpoet.materialnotes.MainKt"
+        mainClass = "com.androidpoet.reply.MainKt"
 
         nativeDistributions {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
-            packageName = "com.androidpoet.materialnotes"
+            packageName = "com.androidpoet.reply"
             packageVersion = "1.0.0"
         }
     }

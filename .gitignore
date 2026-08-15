@@ -13,5 +13,3 @@ captures
 xcuserdata/
 !gradle-wrapper.jar
 
-# Supabase CLI scratch
-supabase/.temp/

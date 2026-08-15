@@ -1,4 +1,4 @@
-rootProject.name = "MaterialNotesCMP"
+rootProject.name = "Reply"
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
 pluginManagement {
@@ -34,6 +34,7 @@ include(":desktopApp")
 include(":core:data")
 include(":core:designsystem")
 include(":feature:home")
-include(":feature:addnote")
-include(":feature:detail")
-include(":feature:auth")
+include(":feature:email")
+include(":feature:compose")
+include(":feature:search")
+include(":feature:nav")

@@ -32,12 +32,13 @@ kotlin {
 
     sourceSets {
         commonMain.dependencies {
-            implementation(projects.core.data)
+            api(projects.core.data)
             implementation(projects.core.designsystem)
             implementation(projects.feature.home)
-            implementation(projects.feature.addnote)
-            implementation(projects.feature.detail)
-            implementation(projects.feature.auth)
+            implementation(projects.feature.email)
+            implementation(projects.feature.compose)
+            implementation(projects.feature.search)
+            implementation(projects.feature.nav)
 
             implementation(compose.runtime)
             implementation(compose.foundation)
@@ -48,9 +49,6 @@ kotlin {
 
             implementation(libs.kotlinx.coroutines.core)
             implementation(libs.kotlinx.serialization.json)
-
-            // SqlDriver type referenced by the Metro graph factory.
-            implementation(libs.sqldelight.runtime)
 
             implementation(libs.lifecycle.viewmodel)
             implementation(libs.lifecycle.viewmodel.compose)
@@ -66,7 +64,7 @@ kotlin {
 }
 
 android {
-    namespace = "com.androidpoet.materialnotes.shared"
+    namespace = "com.androidpoet.reply.shared"
     compileSdk = libs.versions.android.compileSdk.get().toInt()
 
     defaultConfig {
