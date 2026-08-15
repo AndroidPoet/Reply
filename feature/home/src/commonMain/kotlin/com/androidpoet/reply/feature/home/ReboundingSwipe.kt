@@ -14,7 +14,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import com.androidpoet.reply.designsystem.theme.ReplyMotion
+import com.androidpoet.reply.designsystem.motion.Durations
+import com.androidpoet.reply.designsystem.motion.Interpolators
 import kotlinx.coroutines.launch
 import kotlin.math.abs
 import kotlin.math.ln
@@ -78,9 +79,9 @@ class ReboundingSwipeState {
 fun rememberReboundingSwipeState(): ReboundingSwipeState = remember { ReboundingSwipeState() }
 
 /**
- * Attach the rebounding horizontal swipe. On release the card springs back over
- * [ReplyMotion.DURATION_MEDIUM]; if the threshold was reached, [onRebounded] fires after the
- * spring-back completes (matching `clearView`).
+ * Attach the rebounding horizontal swipe. On release the card animates back like
+ * `ItemTouchHelper`'s recover animation; if the threshold was reached, [onRebounded] fires after
+ * it completes (matching `clearView`).
  */
 @Composable
 fun Modifier.reboundingSwipe(
@@ -99,9 +100,10 @@ fun Modifier.reboundingSwipe(
             scope.launch {
                 val met = state.hasMetThresholdOnce
                 state.settle.snapTo(state.rawDx)
+                // ItemTouchHelper.RecoverAnimation: 250ms, AccelerateDecelerateInterpolator.
                 state.settle.animateTo(
                     0f,
-                    tween(ReplyMotion.DURATION_MEDIUM, easing = ReplyMotion.Persistent),
+                    tween(Durations.ITEM_TOUCH_HELPER_RECOVER, easing = Interpolators.AccelerateDecelerate),
                 ) { state.setRaw(value) }
                 state.reset()
                 if (met) onRebounded()

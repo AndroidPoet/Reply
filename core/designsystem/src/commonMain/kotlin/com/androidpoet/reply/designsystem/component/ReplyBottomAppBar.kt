@@ -1,12 +1,5 @@
 package com.androidpoet.reply.designsystem.component
 
-import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.scaleIn
-import androidx.compose.animation.scaleOut
-import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -40,7 +33,6 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.androidpoet.reply.designsystem.shape.CutoutTopEdgeShape
 import com.androidpoet.reply.designsystem.theme.ReplyDimens
-import com.androidpoet.reply.designsystem.theme.ReplyMotion
 import com.androidpoet.reply.designsystem.theme.ReplyTheme
 import com.androidpoet.reply.designsystem.theme.elevated
 
@@ -127,16 +119,15 @@ fun BottomAppBarWithFab(
 }
 
 /**
- * The 56dp secondary-coloured FAB. [icon] is swapped with the `edit ⇄ reply` morph
- * (`asl_edit_reply`): fade + scale + rotate, 175ms.
+ * The 56dp secondary-coloured FAB (`Widget.MaterialComponents.FloatingActionButton`, 6dp
+ * elevation). [icon] is drawn centred at 24dp — pair with [EditReplyIcon] for the
+ * `asl_edit_reply` morph.
  */
 @Composable
 fun ReplyFab(
-    icon: Painter,
-    contentDescription: String?,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
-    iconKey: Any = icon,
+    icon: @Composable () -> Unit,
 ) {
     val colors = ReplyTheme.colors
     val interaction = remember { MutableInteractionSource() }
@@ -154,26 +145,7 @@ fun ReplyFab(
             ),
         contentAlignment = Alignment.Center,
     ) {
-        AnimatedContent(
-            targetState = iconKey to icon,
-            transitionSpec = {
-                (fadeIn(tween(ReplyMotion.DURATION_SMALL, easing = ReplyMotion.Incoming)) +
-                    scaleIn(tween(ReplyMotion.DURATION_SMALL, easing = ReplyMotion.Incoming), initialScale = 0.5f))
-                    .togetherWith(
-                        fadeOut(tween(ReplyMotion.DURATION_SMALL / 2, easing = ReplyMotion.Outgoing)) +
-                            scaleOut(tween(ReplyMotion.DURATION_SMALL / 2, easing = ReplyMotion.Outgoing), targetScale = 0.5f),
-                    )
-            },
-            contentKey = { it.first },
-            label = "fabIcon",
-        ) { (_, painter) ->
-            Icon(
-                painter = painter,
-                contentDescription = contentDescription,
-                tint = colors.onSecondary,
-                modifier = Modifier.size(24.dp),
-            )
-        }
+        Box(Modifier.size(24.dp)) { icon() }
     }
 }
 

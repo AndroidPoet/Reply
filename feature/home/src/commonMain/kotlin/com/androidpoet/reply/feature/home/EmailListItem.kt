@@ -20,7 +20,9 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
@@ -33,20 +35,21 @@ import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.boundsInRoot
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.unit.dp
 import com.androidpoet.reply.data.Email
-import com.androidpoet.reply.designsystem.SharedKeys
 import com.androidpoet.reply.designsystem.component.Avatar
 import com.androidpoet.reply.designsystem.component.ReplyCard
 import com.androidpoet.reply.designsystem.component.ReplyText
 import com.androidpoet.reply.designsystem.resources.Res
 import com.androidpoet.reply.designsystem.resources.ic_twotone_star_on_background
-import com.androidpoet.reply.designsystem.sharedCardBounds
 import com.androidpoet.reply.designsystem.theme.ReplyDimens
 import com.androidpoet.reply.designsystem.theme.ReplyMotion
 import com.androidpoet.reply.designsystem.theme.ReplyTheme
-import androidx.compose.foundation.shape.RoundedCornerShape
 import org.jetbrains.compose.resources.painterResource
 import kotlin.math.PI
 import kotlin.math.abs
@@ -64,7 +67,7 @@ private const val ICON_MAX_SCALE_ADDITION = 0.5f
 @Composable
 fun EmailListItem(
     email: Email,
-    onClick: (Email) -> Unit,
+    onClick: (email: Email, cardBoundsInRoot: Rect, topLeftCornerPx: Float) -> Unit,
     onLongClick: (Email) -> Unit,
     onStarChanged: (Email, Boolean) -> Unit,
     modifier: Modifier = Modifier,
@@ -99,6 +102,8 @@ fun EmailListItem(
     val topLeftCorner = starredCornerPx * cornerInterpolation
 
     val star: Painter = painterResource(Res.drawable.ic_twotone_star_on_background)
+    var cardBounds by remember { mutableStateOf(Rect.Zero) }
+    val topLeftCornerPx = with(LocalDensity.current) { topLeftCorner.toPx() }
     val iconTint = colors.onBackground
     val iconTintActive = colors.onSecondary
     val circleColor = colors.secondary
@@ -139,23 +144,26 @@ fun EmailListItem(
             topLeftCorner = topLeftCorner,
             modifier = Modifier
                 .graphicsLayer { translationX = swipe.translationX }
-                .sharedCardBounds(SharedKeys.emailCard(email.id), RoundedCornerShape(topStart = topLeftCorner))
+                .onGloballyPositioned { cardBounds = it.boundsInRoot() }
                 .reboundingSwipe(swipe, enabled = swipeEnabled) {
                     onStarChanged(email, !email.isStarred)
                 }
                 .combinedClickable(
-                    onClick = { onClick(email) },
+                    onClick = { onClick(email, cardBounds, topLeftCornerPx) },
                     onLongClick = { onLongClick(email) },
                 ),
         ) {
-            EmailCardContent(email)
+            EmailCardBody(email)
         }
     }
 }
 
-/** Layout of the card body — shared with nothing else, but kept separate for readability. */
+/**
+ * The card body (`email_item_layout.xml` content). Public so the app shell can draw a copy of it
+ * inside the container transform that morphs the card into the email detail.
+ */
 @Composable
-private fun EmailCardContent(email: Email) {
+fun EmailCardBody(email: Email) {
     val colors = ReplyTheme.colors
     val typography = ReplyTheme.typography
     Column(Modifier.padding(top = ReplyDimens.grid2, bottom = ReplyDimens.grid2)) {

@@ -101,6 +101,73 @@ class ScreenshotTest {
         snap(label, "10_email_menu")
     }
 
+    /** Steps the clock through each transition and writes a frame every 50ms to `build/screenshots/motion/`. */
+    @Test
+    fun motion() = runDesktopComposeUiTest(width = 1080, height = 2340) {
+        setContent {
+            CompositionLocalProvider(LocalDensity provides Density(2.625f)) {
+                App(buildAppGraph(), initialThemeMode = ThemeMode.LIGHT)
+            }
+        }
+        settle()
+        mainClock.autoAdvance = false
+
+        fun frames(name: String, total: Int, step: Int = 16, action: () -> Unit) {
+            action()
+            var t = 0
+            while (t <= total) {
+                mainClock.advanceTimeBy(if (t == 0) 16 else step.toLong())
+                waitForIdle()
+                val image = onAllNodes(isRoot()).onFirst().captureToImage().toAwtImage()
+                val dir = File(outDir, "motion").apply { mkdirs() }
+                ImageIO.write(image, "png", File(dir, "${name}_${t.toString().padStart(3, '0')}.png"))
+                t += step
+            }
+            mainClock.advanceTimeBy(1_000)
+            waitForIdle()
+        }
+
+        frames("swipe_star", 700) {
+            onNodeWithText("Brunch this weekend?").performTouchInput {
+                down(centerLeft)
+                repeat(20) { moveBy(androidx.compose.ui.geometry.Offset(width * 0.03f, 0f), 16) }
+                up()
+            }
+        }
+        frames("card_to_detail", 300) { onNodeWithText("Bonjour from Paris").performClick() }
+        frames("detail_to_card", 300) { onNodeWithContentDescription("Navigate back").performClick() }
+        frames("fab_to_compose", 300) { onNodeWithContentDescription("Compose new email").performClick() }
+        frames("compose_close", 300) { onNodeWithContentDescription("Close editing email").performClick() }
+        frames("drawer_open", 450) { onNodeWithContentDescription("Toggle navigation drawer").performClick() }
+        frames("sandwich_open", 250) { onNodeWithContentDescription("profile avatar image").performClick() }
+        frames("mailbox_switch", 300) {
+            onNodeWithContentDescription("Toggle navigation drawer").performClick()
+            mainClock.advanceTimeBy(300); waitForIdle()
+            onNodeWithText("Starred").performClick()
+        }
+        frames("search_open", 300) { onNodeWithContentDescription("Search").performClick() }
+        frames("search_close", 300) { onNodeWithContentDescription("Navigate back").performClick() }
+    }
+
+    /** 16ms frames of the card → detail transform, for timing analysis. */
+    @Test
+    fun timing() = runDesktopComposeUiTest(width = 1080, height = 2340) {
+        setContent {
+            CompositionLocalProvider(LocalDensity provides Density(2.625f)) {
+                App(buildAppGraph(), initialThemeMode = ThemeMode.LIGHT)
+            }
+        }
+        settle()
+        mainClock.autoAdvance = false
+        val dir = File(outDir, "timing").apply { mkdirs() }
+        onNodeWithText("Bonjour from Paris").performClick()
+        repeat(24) { i ->
+            mainClock.advanceTimeBy(16)
+            val image = onAllNodes(isRoot()).onFirst().captureToImage().toAwtImage()
+            ImageIO.write(image, "png", File(dir, "t_${(i * 16).toString().padStart(3, '0')}.png"))
+        }
+    }
+
     @Test
     fun light() = walk(ThemeMode.LIGHT)
 

@@ -30,14 +30,12 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.androidpoet.reply.data.Email
 import com.androidpoet.reply.data.EmailAttachment
-import com.androidpoet.reply.designsystem.SharedKeys
 import com.androidpoet.reply.designsystem.component.Avatar
 import com.androidpoet.reply.designsystem.component.ReplyCard
 import com.androidpoet.reply.designsystem.component.ReplyIconButton
 import com.androidpoet.reply.designsystem.component.ReplyText
 import com.androidpoet.reply.designsystem.resources.Res
 import com.androidpoet.reply.designsystem.resources.ic_arrow_down
-import com.androidpoet.reply.designsystem.sharedCardBounds
 import com.androidpoet.reply.designsystem.theme.Emphasis
 import com.androidpoet.reply.designsystem.theme.ReplyDimens
 import com.androidpoet.reply.designsystem.theme.ReplyTheme
@@ -74,20 +72,38 @@ fun EmailScreen(
                 .verticalScroll(rememberScrollState())
                 .padding(start = ReplyDimens.grid0_5, end = ReplyDimens.grid0_5, top = topPadding),
         ) {
-        val current = email ?: return@Column
-        ReplyCard(
-            elevation = ReplyDimens.plane01,
-            modifier = Modifier
-                .defaultMinSize(minHeight = minCardHeight)
-                .sharedCardBounds(SharedKeys.emailCard(current.id), ReplyTheme.shapes.medium),
-        ) {
-            EmailContent(
+            val current = email ?: return@Column
+            EmailDetailCard(
                 email = current,
                 onNavigateUp = onNavigateUp,
-                bottomPadding = ReplyDimens.bottomAppBarHeight + navBars.calculateBottomPadding(),
+                minHeight = minCardHeight,
             )
         }
-        }
+    }
+}
+
+/**
+ * The detail card (`fragment_email.xml`'s `MaterialCardView`), full width, at least [minHeight]
+ * tall. Public so the app shell can render it as the end view of the card → detail container
+ * transform.
+ */
+@Composable
+fun EmailDetailCard(
+    email: Email,
+    onNavigateUp: () -> Unit,
+    minHeight: androidx.compose.ui.unit.Dp,
+    modifier: Modifier = Modifier,
+) {
+    val navBars = WindowInsets.navigationBars.asPaddingValues()
+    ReplyCard(
+        elevation = ReplyDimens.plane01,
+        modifier = modifier.defaultMinSize(minHeight = minHeight),
+    ) {
+        EmailContent(
+            email = email,
+            onNavigateUp = onNavigateUp,
+            bottomPadding = ReplyDimens.bottomAppBarHeight + navBars.calculateBottomPadding(),
+        )
     }
 }
 

@@ -1,11 +1,7 @@
 package com.androidpoet.reply.feature.compose
 
-import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.expandIn
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.shrinkOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
@@ -37,18 +33,29 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.layout.boundsInRoot
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInRoot
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import com.androidpoet.reply.data.Account
 import com.androidpoet.reply.designsystem.component.Avatar
@@ -56,6 +63,12 @@ import com.androidpoet.reply.designsystem.component.ReplyCard
 import com.androidpoet.reply.designsystem.component.ReplyDivider
 import com.androidpoet.reply.designsystem.component.ReplyIconButton
 import com.androidpoet.reply.designsystem.component.ReplyText
+import com.androidpoet.reply.designsystem.motion.ContainerTransform
+import com.androidpoet.reply.designsystem.motion.ContainerTransformSpec
+import com.androidpoet.reply.designsystem.motion.Corners
+import com.androidpoet.reply.designsystem.motion.Durations
+import com.androidpoet.reply.designsystem.motion.Interpolators
+import com.androidpoet.reply.designsystem.motion.ProgressThresholds
 import com.androidpoet.reply.designsystem.resources.Res
 import com.androidpoet.reply.designsystem.resources.ic_arrow_down
 import com.androidpoet.reply.designsystem.resources.ic_close
@@ -63,31 +76,67 @@ import com.androidpoet.reply.designsystem.resources.ic_close_small
 import com.androidpoet.reply.designsystem.resources.ic_twotone_add_circle_outline
 import com.androidpoet.reply.designsystem.resources.ic_twotone_send
 import com.androidpoet.reply.designsystem.theme.ReplyDimens
-import com.androidpoet.reply.designsystem.theme.ReplyMotion
 import com.androidpoet.reply.designsystem.theme.ReplyTheme
 import com.androidpoet.reply.designsystem.theme.elevated
 import org.jetbrains.compose.resources.painterResource
 
+/** Recipient popup: `MaterialCardView` 360dp wide, 4dp corners, 6dp elevation. */
+private val RECIPIENT_CARD_WIDTH = 360.dp
+private val RECIPIENT_CARD_CORNER = 4.dp
+
+/** Which way the chip ⇄ card container transform is running. */
+private enum class RecipientCardPhase { Expanding, Open, Collapsing }
+
 /**
  * `fragment_compose.xml`: subject / from / to / body inside a surface card. Send and close both
- * simply leave the screen, as in the sample.
+ * simply leave the screen, as in the sample. Tapping a recipient chip runs a
+ * `MaterialContainerTransform` (chip → 360dp address card) drawn in this screen's overlay.
  */
 @Composable
 fun ComposeScreen(
     viewModel: ComposeViewModel,
     onClose: () -> Unit,
     modifier: Modifier = Modifier,
+    /** `returnTransition = Slide()`: vertical offset (px) applied to the card while it is popped. */
+    cardTranslationY: () -> Float = { 0f },
 ) {
     val colors = ReplyTheme.colors
-    val typography = ReplyTheme.typography
+    val density = LocalDensity.current
     val statusBars = WindowInsets.statusBars.asPaddingValues()
-    val navBars = WindowInsets.navigationBars.asPaddingValues()
+
+    var screenOrigin by remember { mutableStateOf(Offset.Zero) }
+    var cardBounds by remember { mutableStateOf(Rect.Zero) }
     var expandedRecipient by remember { mutableStateOf<Account?>(null) }
+    var chipBounds by remember { mutableStateOf(Rect.Zero) }
+    var phase by remember { mutableStateOf(RecipientCardPhase.Open) }
+    val transformProgress = remember { Animatable(0f) }
+
+    // MDC's transform interpolates its own progress with fast_out_slow_in over 300ms.
+    LaunchedEffect(expandedRecipient, phase) {
+        when (phase) {
+            RecipientCardPhase.Expanding -> {
+                transformProgress.snapTo(0f)
+                transformProgress.animateTo(1f, tween(Durations.LARGE, easing = Interpolators.FastOutSlowIn))
+                phase = RecipientCardPhase.Open
+            }
+            RecipientCardPhase.Collapsing -> {
+                transformProgress.snapTo(0f)
+                transformProgress.animateTo(1f, tween(Durations.LARGE, easing = Interpolators.FastOutSlowIn))
+                expandedRecipient = null
+                phase = RecipientCardPhase.Open
+            }
+            RecipientCardPhase.Open -> Unit
+        }
+    }
+    fun collapse() {
+        if (expandedRecipient != null && phase == RecipientCardPhase.Open) phase = RecipientCardPhase.Collapsing
+    }
 
     BoxWithConstraints(
         modifier
             .fillMaxSize()
-            .background(colors.background),
+            .background(colors.background)
+            .onGloballyPositioned { screenOrigin = it.positionInRoot() },
     ) {
         val topPadding = statusBars.calculateTopPadding() + ReplyDimens.grid1
         // NestedScrollView fillViewport="true": the card is at least as tall as the viewport.
@@ -99,132 +148,218 @@ fun ComposeScreen(
                 .imePadding()
                 .padding(start = ReplyDimens.grid0_5, end = ReplyDimens.grid0_5, top = topPadding),
         ) {
-            ReplyCard(elevation = ReplyDimens.plane01, modifier = Modifier.defaultMinSize(minHeight = minCardHeight)) {
-                Column(Modifier.padding(top = ReplyDimens.grid2)) {
-                    // Close · Subject · Send
-                    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.Top) {
-                        ReplyIconButton(
-                            icon = painterResource(Res.drawable.ic_close),
-                            contentDescription = "Close editing email",
-                            onClick = onClose,
-                            tint = colors.onSurfaceDisabled,
-                            modifier = Modifier.padding(start = ReplyDimens.grid1),
-                        )
-                        ReplyTextField(
-                            value = viewModel.subject,
-                            onValueChange = { viewModel.subject = it },
-                            hint = "Subject",
-                            textStyle = typography.headline5.copy(color = colors.onSurfaceHigh),
-                            singleLine = true,
-                            modifier = Modifier
-                                .weight(1f)
-                                .padding(horizontal = ReplyDimens.grid2)
-                                .defaultMinSize(minHeight = ReplyDimens.minTouchTarget)
-                                .padding(vertical = ReplyDimens.grid1),
-                        )
-                        ReplyIconButton(
-                            icon = painterResource(Res.drawable.ic_twotone_send),
-                            contentDescription = "Send email",
-                            onClick = onClose,
-                            tint = colors.primary,
-                            modifier = Modifier.padding(end = ReplyDimens.grid1),
-                        )
+            ComposeCard(
+                viewModel = viewModel,
+                onClose = onClose,
+                minHeight = minCardHeight,
+                modifier = Modifier.graphicsLayer { translationY = cardTranslationY() },
+                hiddenRecipient = expandedRecipient,
+                onRecipientClick = { account, bounds ->
+                    if (expandedRecipient == null) {
+                        chipBounds = bounds.translate(-screenOrigin)
+                        expandedRecipient = account
+                        phase = RecipientCardPhase.Expanding
                     }
-                    ReplyDivider(Modifier.padding(top = ReplyDimens.grid1, start = ReplyDimens.grid2, end = ReplyDimens.grid2))
-
-                    // From (spinner)
-                    SenderSpinner(
-                        selected = viewModel.sender,
-                        options = viewModel.senderOptions,
-                        onSelected = { viewModel.sender = it },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(top = ReplyDimens.grid0_5, end = ReplyDimens.grid1),
-                    )
-                    ReplyDivider(Modifier.padding(top = ReplyDimens.grid0_5, start = ReplyDimens.grid2, end = ReplyDimens.grid2))
-
-                    // To (chips)
-                    Row(
-                        Modifier
-                            .fillMaxWidth()
-                            .padding(top = ReplyDimens.grid1),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Row(
-                            Modifier
-                                .weight(1f)
-                                .padding(end = ReplyDimens.grid2)
-                                .heightIn(min = ReplyDimens.minTouchTarget)
-                                .horizontalScroll(rememberScrollState())
-                                .padding(vertical = ReplyDimens.grid0_25),
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            Spacer(Modifier.width(ReplyDimens.grid2))
-                            viewModel.recipients.forEachIndexed { index, account ->
-                                if (index > 0) Spacer(Modifier.width(ReplyDimens.grid1))
-                                RecipientChip(
-                                    account = account,
-                                    onClick = { expandedRecipient = account },
-                                )
-                            }
-                        }
-                        ReplyIconButton(
-                            icon = painterResource(Res.drawable.ic_twotone_add_circle_outline),
-                            contentDescription = "Add recipient",
-                            onClick = {},
-                            tint = colors.onSurfaceDisabled,
-                            modifier = Modifier.padding(end = ReplyDimens.grid1),
-                        )
-                    }
-                    ReplyDivider(Modifier.padding(top = ReplyDimens.grid1, start = ReplyDimens.grid2, end = ReplyDimens.grid2))
-
-                    // Body
-                    ReplyTextField(
-                        value = viewModel.body,
-                        onValueChange = { viewModel.body = it },
-                        hint = "New message…",
-                        textStyle = typography.body1.copy(color = colors.onSurfaceHigh),
-                        singleLine = false,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(top = ReplyDimens.grid2, start = ReplyDimens.grid2, end = ReplyDimens.grid2)
-                            .defaultMinSize(minHeight = 250.dp)
-                            .padding(bottom = ReplyDimens.grid4 + navBars.calculateBottomPadding()),
-                    )
-                }
-            }
+                },
+                onCardBounds = { cardBounds = it.translate(-screenOrigin) },
+            )
         }
 
-        // Expanded recipient card (MaterialContainerTransform chip → card) over a tap-to-close scrim.
-        val expanded = expandedRecipient
-        if (expanded != null) {
+        // recipient_card_scrim: any tap outside collapses the card.
+        val recipient = expandedRecipient
+        if (recipient != null) {
             Box(
                 Modifier
                     .fillMaxSize()
                     .clickable(
                         interactionSource = remember { MutableInteractionSource() },
                         indication = null,
-                    ) { expandedRecipient = null },
+                    ) { collapse() },
             )
-        }
-        AnimatedVisibility(
-            visible = expanded != null,
-            enter = fadeIn(tween(ReplyMotion.DURATION_MEDIUM)) +
-                expandIn(tween(ReplyMotion.DURATION_MEDIUM), expandFrom = Alignment.TopStart),
-            exit = fadeOut(tween(ReplyMotion.DURATION_MEDIUM)) +
-                shrinkOut(tween(ReplyMotion.DURATION_MEDIUM), shrinkTowards = Alignment.TopStart),
-            modifier = Modifier
-                .padding(top = statusBars.calculateTopPadding() + ReplyDimens.grid1 + ReplyDimens.grid2 + ReplyDimens.grid2)
-                .padding(start = ReplyDimens.grid0_5 + ReplyDimens.grid1 + ReplyDimens.grid2, end = ReplyDimens.grid2),
-        ) {
-            var shown by remember { mutableStateOf(expanded) }
-            if (expanded != null) shown = expanded
-            shown?.let { RecipientCard(account = it, onClose = { expandedRecipient = null }) }
+            // recipient_card_view: constrained to close_icon's start (+16dp) and top (+16dp).
+            val cardWidthPx = with(density) { minOf(RECIPIENT_CARD_WIDTH, maxWidth - ReplyDimens.grid4 - ReplyDimens.grid2).toPx() }
+            val cardHeightPx = with(density) { (64.dp * 2).toPx() }
+            val cardRect = Rect(
+                offset = Offset(
+                    cardBounds.left + with(density) { (ReplyDimens.grid1 + ReplyDimens.grid2).toPx() },
+                    cardBounds.top + with(density) { (ReplyDimens.grid2 + ReplyDimens.grid2).toPx() },
+                ),
+                size = Size(cardWidthPx, cardHeightPx),
+            )
+            val chipCorners = Corners.all(with(density) { 16.dp.toPx() })
+            val cardCorners = Corners.all(with(density) { RECIPIENT_CARD_CORNER.toPx() })
+            val chipColor = colors.onSurface.copy(alpha = 0.10f).compositeOver(colors.elevated(colors.surface, ReplyDimens.plane01))
+            val cardColor = colors.elevated(colors.surface, ReplyDimens.plane06)
+            val chip: @Composable () -> Unit = { RecipientChip(account = recipient, onClick = {}) }
+            val card: @Composable () -> Unit = {
+                RecipientCard(
+                    account = recipient,
+                    onClose = { collapse() },
+                    modifier = Modifier.width(with(density) { cardWidthPx.toDp() }),
+                    elevated = false,
+                )
+            }
+            val spec = if (phase == RecipientCardPhase.Collapsing) {
+                ContainerTransformSpec(
+                    startBounds = cardRect, endBounds = chipBounds,
+                    startCorners = cardCorners, endCorners = chipCorners,
+                    startColor = cardColor, endColor = chipColor,
+                    thresholds = ProgressThresholds.Return,
+                    startElevation = ReplyDimens.plane06, endElevation = 0.dp,
+                    startContent = card, endContent = chip,
+                )
+            } else {
+                ContainerTransformSpec(
+                    startBounds = chipBounds, endBounds = cardRect,
+                    startCorners = chipCorners, endCorners = cardCorners,
+                    startColor = chipColor, endColor = cardColor,
+                    thresholds = ProgressThresholds.Enter,
+                    startElevation = 0.dp, endElevation = ReplyDimens.plane06,
+                    startContent = chip, endContent = card,
+                )
+            }
+            ContainerTransform(
+                spec = spec,
+                progress = if (phase == RecipientCardPhase.Open) 1f else transformProgress.value,
+            )
         }
     }
 }
 
-/** A hint-bearing borderless field (`EditText` with transparent background). */
+private fun androidx.compose.ui.graphics.Color.compositeOver(background: androidx.compose.ui.graphics.Color): androidx.compose.ui.graphics.Color {
+    val a = alpha
+    return androidx.compose.ui.graphics.Color(
+        red = red * a + background.red * (1 - a),
+        green = green * a + background.green * (1 - a),
+        blue = blue * a + background.blue * (1 - a),
+        alpha = 1f,
+    )
+}
+
+/**
+ * The compose card (`fragment_compose.xml`'s `MaterialCardView`), at least [minHeight] tall.
+ * Public so the app shell can render it as the end view of the FAB → compose container transform.
+ * [hiddenRecipient]'s chip is drawn invisible while its address card is expanded.
+ */
+@Composable
+fun ComposeCard(
+    viewModel: ComposeViewModel,
+    onClose: () -> Unit,
+    minHeight: Dp,
+    modifier: Modifier = Modifier,
+    hiddenRecipient: Account? = null,
+    onRecipientClick: (Account, Rect) -> Unit = { _, _ -> },
+    onCardBounds: (Rect) -> Unit = {},
+) {
+    val colors = ReplyTheme.colors
+    val typography = ReplyTheme.typography
+    val navBars = WindowInsets.navigationBars.asPaddingValues()
+    ReplyCard(
+        elevation = ReplyDimens.plane01,
+        modifier = modifier
+            .defaultMinSize(minHeight = minHeight)
+            .onGloballyPositioned { onCardBounds(it.boundsInRoot()) },
+    ) {
+        Column(Modifier.padding(top = ReplyDimens.grid2)) {
+            // Close · Subject · Send
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.Top) {
+                ReplyIconButton(
+                    icon = painterResource(Res.drawable.ic_close),
+                    contentDescription = "Close editing email",
+                    onClick = onClose,
+                    tint = colors.onSurfaceDisabled,
+                    modifier = Modifier.padding(start = ReplyDimens.grid1),
+                )
+                ReplyTextField(
+                    value = viewModel.subject,
+                    onValueChange = { viewModel.subject = it },
+                    hint = "Subject",
+                    textStyle = typography.headline5.copy(color = colors.onSurfaceHigh),
+                    singleLine = true,
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(horizontal = ReplyDimens.grid2)
+                        .defaultMinSize(minHeight = ReplyDimens.minTouchTarget)
+                        .padding(vertical = ReplyDimens.grid1),
+                )
+                ReplyIconButton(
+                    icon = painterResource(Res.drawable.ic_twotone_send),
+                    contentDescription = "Send email",
+                    onClick = onClose,
+                    tint = colors.primary,
+                    modifier = Modifier.padding(end = ReplyDimens.grid1),
+                )
+            }
+            ReplyDivider(Modifier.padding(top = ReplyDimens.grid1, start = ReplyDimens.grid2, end = ReplyDimens.grid2))
+
+            // From (spinner)
+            SenderSpinner(
+                selected = viewModel.sender,
+                options = viewModel.senderOptions,
+                onSelected = { viewModel.sender = it },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = ReplyDimens.grid0_5, end = ReplyDimens.grid1),
+            )
+            ReplyDivider(Modifier.padding(top = ReplyDimens.grid0_5, start = ReplyDimens.grid2, end = ReplyDimens.grid2))
+
+            // To (chips)
+            Row(
+                Modifier
+                    .fillMaxWidth()
+                    .padding(top = ReplyDimens.grid1),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Row(
+                    Modifier
+                        .weight(1f)
+                        .padding(end = ReplyDimens.grid2)
+                        .heightIn(min = ReplyDimens.minTouchTarget)
+                        .horizontalScroll(rememberScrollState())
+                        .padding(vertical = ReplyDimens.grid0_25),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Spacer(Modifier.width(ReplyDimens.grid2))
+                    viewModel.recipients.forEachIndexed { index, account ->
+                        if (index > 0) Spacer(Modifier.width(ReplyDimens.grid1))
+                        var bounds by remember { mutableStateOf(Rect.Zero) }
+                        RecipientChip(
+                            account = account,
+                            onClick = { onRecipientClick(account, bounds) },
+                            modifier = Modifier
+                                .onGloballyPositioned { bounds = it.boundsInRoot() }
+                                // View.INVISIBLE: keeps its slot so the row does not shift.
+                                .alpha(if (account == hiddenRecipient) 0f else 1f),
+                        )
+                    }
+                }
+                ReplyIconButton(
+                    icon = painterResource(Res.drawable.ic_twotone_add_circle_outline),
+                    contentDescription = "Add recipient",
+                    onClick = {},
+                    tint = colors.onSurfaceDisabled,
+                    modifier = Modifier.padding(end = ReplyDimens.grid1),
+                )
+            }
+            ReplyDivider(Modifier.padding(top = ReplyDimens.grid1, start = ReplyDimens.grid2, end = ReplyDimens.grid2))
+
+            // Body
+            ReplyTextField(
+                value = viewModel.body,
+                onValueChange = { viewModel.body = it },
+                hint = "New message…",
+                textStyle = typography.body1.copy(color = colors.onSurfaceHigh),
+                singleLine = false,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = ReplyDimens.grid2, start = ReplyDimens.grid2, end = ReplyDimens.grid2)
+                    .defaultMinSize(minHeight = 250.dp)
+                    .padding(bottom = ReplyDimens.grid4 + navBars.calculateBottomPadding()),
+            )
+        }
+    }
+}
+
 @Composable
 private fun ReplyTextField(
     value: String,
@@ -354,15 +489,23 @@ private fun RecipientCard(
     account: Account,
     onClose: () -> Unit,
     modifier: Modifier = Modifier,
+    elevated: Boolean = true,
 ) {
     val colors = ReplyTheme.colors
-    val shape = RoundedCornerShape(4.dp)
+    val shape = RoundedCornerShape(RECIPIENT_CARD_CORNER)
     Column(
         modifier
-            .width(360.dp)
-            .shadow(ReplyDimens.plane06, shape)
-            .clip(shape)
-            .background(colors.elevated(colors.surface, ReplyDimens.plane06))
+            .width(RECIPIENT_CARD_WIDTH)
+            .then(
+                if (elevated) {
+                    Modifier
+                        .shadow(ReplyDimens.plane06, shape)
+                        .clip(shape)
+                        .background(colors.elevated(colors.surface, ReplyDimens.plane06))
+                } else {
+                    Modifier
+                },
+            )
             .clickable(onClick = onClose),
     ) {
         Row(

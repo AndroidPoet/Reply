@@ -84,7 +84,18 @@ fun BottomNavDrawer(
 
     BoxWithConstraints(modifier.fillMaxSize()) {
         val heightPx = with(density) { maxHeight.toPx() }
-        LaunchedEffect(heightPx) { state.containerHeight = heightPx }
+        val widthPx = with(density) { maxWidth.toPx() }
+        LaunchedEffect(heightPx, widthPx, density) {
+            state.containerHeight = heightPx
+            state.containerWidth = widthPx
+            state.density = density.density
+        }
+
+        // ForegroundSheetTransformSlideAction: between half-expanded (0) and a quarter of the way
+        // to expanded (0.25) the cutout/corners flatten, the avatar shrinks away and the foreground
+        // slides up over its 24dp top margin; the status-bar inset is padded in over 0..0.9.
+        val foregroundInterpolation = 1f - (state.expandFraction / 0.25f).coerceIn(0f, 1f)
+        val topInsetProgress = (state.expandFraction / 0.9f).coerceIn(0f, 1f)
 
         // Scrim — fades in with the sheet and closes it on tap.
         val open = state.openFraction
@@ -148,7 +159,7 @@ fun BottomNavDrawer(
 
             // ---- Foreground container: mailbox navigation ----
             if (state.sandwichState != SandwichState.OPEN) {
-                val shapeInterpolation = (1f - state.navProgress) * (1f - state.expandFraction)
+                val shapeInterpolation = (1f - state.navProgress) * foregroundInterpolation
                 val fgShape = remember(shapeInterpolation) {
                     CutoutTopEdgeShape(
                         cutoutMargin = ReplyDimens.grid1,
@@ -170,13 +181,14 @@ fun BottomNavDrawer(
                         .fillMaxSize()
                         .padding(top = ReplyDimens.grid3)
                         .graphicsLayer {
-                            translationY = size.height * 0.15f * state.navProgress
+                            translationY = size.height * 0.15f * state.navProgress -
+                                (1f - foregroundInterpolation) * ReplyDimens.grid3.toPx()
                             alpha = 1f - state.navProgress
                         }
                         .shadow(ReplyDimens.plane16, fgShape, clip = false)
                         .background(fgColor, fgShape)
                         .clip(fgShape)
-                        .padding(top = ReplyDimens.grid3 + statusBarTop * state.expandFraction, bottom = ReplyDimens.grid4),
+                        .padding(top = ReplyDimens.grid3 + statusBarTop * topInsetProgress, bottom = ReplyDimens.grid4),
                 ) {
                     LazyColumn(
                         state = listState,
@@ -204,7 +216,7 @@ fun BottomNavDrawer(
             }
 
             // Profile image, cradled in the foreground's top edge.
-            val imageVisibility = (1f - state.navProgress) * (1f - state.expandFraction)
+            val imageVisibility = (1f - state.navProgress) * foregroundInterpolation
             Box(
                 Modifier
                     .align(Alignment.TopCenter)
