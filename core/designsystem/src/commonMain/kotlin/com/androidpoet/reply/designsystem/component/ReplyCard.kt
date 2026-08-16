@@ -1,6 +1,5 @@
 package com.androidpoet.reply.designsystem.component
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -17,16 +16,14 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.androidpoet.reply.data.ReplyImage
 import com.androidpoet.reply.designsystem.theme.ReplyDimens
 import com.androidpoet.reply.designsystem.theme.ReplyTheme
 import com.androidpoet.reply.designsystem.theme.elevated
-import org.jetbrains.compose.resources.DrawableResource
-import org.jetbrains.compose.resources.painterResource
 
 @Composable
 fun ReplyCard(
@@ -53,15 +50,14 @@ fun ReplyCard(
 
 @Composable
 fun Avatar(
-    image: DrawableResource,
+    image: ReplyImage,
     contentDescription: String?,
     modifier: Modifier = Modifier,
     size: Dp = ReplyDimens.emailSenderProfileImageSize,
 ) {
-    Image(
-        painter = painterResource(image),
+    ReplyAsyncImage(
+        image = image,
         contentDescription = contentDescription,
-        contentScale = ContentScale.Crop,
         modifier = modifier
             .size(size)
             .clip(CircleShape),

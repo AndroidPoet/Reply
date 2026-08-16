@@ -1,6 +1,5 @@
 package com.androidpoet.reply.feature.email
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -24,12 +23,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.androidpoet.reply.data.Email
 import com.androidpoet.reply.data.EmailAttachment
 import com.androidpoet.reply.designsystem.component.Avatar
+import com.androidpoet.reply.designsystem.component.ReplyAsyncImage
 import com.androidpoet.reply.designsystem.component.ReplyCard
 import com.androidpoet.reply.designsystem.component.ReplyIconButton
 import com.androidpoet.reply.designsystem.component.ReplyText
@@ -213,10 +212,9 @@ private fun AttachmentGrid(
         rows.forEach { items ->
             Row(Modifier.fillMaxWidth()) {
                 items.forEach { (attachment, span) ->
-                    Image(
-                        painter = painterResource(attachment.image),
+                    ReplyAsyncImage(
+                        image = attachment.image,
                         contentDescription = attachment.contentDesc,
-                        contentScale = ContentScale.Crop,
                         modifier = Modifier
                             .weight(span.toFloat())
                             .padding(ReplyDimens.grid0_25)

@@ -29,9 +29,13 @@ kotlin {
             implementation(compose.ui)
             implementation(compose.components.resources)
             // Exposed so callers (features + app) get the ViewModel + transition scope types.
+            api(projects.core.data)
             api(libs.lifecycle.viewmodel.compose)
             api(libs.nav3.ui)
             api(libs.compose.ui.backhandler)
+            api(libs.sketch.compose)
+            api(libs.sketch.compose.resources)
+            api(libs.sketch.http.ktor3)
         }
     }
 }

@@ -2,7 +2,13 @@
 
 package com.androidpoet.reply
 
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.remember
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.LifecycleRegistry
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.compose.ui.graphics.toAwtImage
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.test.DesktopComposeUiTest
@@ -23,6 +29,21 @@ import org.junit.Test
 import java.io.File
 import javax.imageio.ImageIO
 
+private class ResumedLifecycleOwner : LifecycleOwner {
+    private val registry = LifecycleRegistry(this).apply { currentState = Lifecycle.State.RESUMED }
+    override val lifecycle: Lifecycle get() = registry
+}
+
+@Composable
+private fun TestHost(content: @Composable () -> Unit) {
+    val owner = remember { ResumedLifecycleOwner() }
+    CompositionLocalProvider(
+        LocalDensity provides Density(2.625f),
+        LocalLifecycleOwner provides owner,
+        content = content,
+    )
+}
+
 class ScreenshotTest {
     private val outDir = File("build/screenshots").apply { mkdirs() }
 
@@ -36,6 +57,9 @@ class ScreenshotTest {
     private fun DesktopComposeUiTest.settle() {
         waitForIdle()
         mainClock.advanceTimeBy(1_500)
+        Thread.sleep(400)
+        waitForIdle()
+        mainClock.advanceTimeBy(100)
         waitForIdle()
     }
 
@@ -45,9 +69,7 @@ class ScreenshotTest {
         val label = theme.name.lowercase()
         val graph = loadedGraph()
         setContent {
-            CompositionLocalProvider(LocalDensity provides Density(2.625f)) {
-                App(graph, initialThemeMode = theme)
-            }
+            TestHost { App(graph, initialThemeMode = theme) }
         }
         snap(label, "01_home")
 
@@ -95,9 +117,7 @@ class ScreenshotTest {
     fun motion() = runDesktopComposeUiTest(width = 1080, height = 2340) {
         val graph = loadedGraph()
         setContent {
-            CompositionLocalProvider(LocalDensity provides Density(2.625f)) {
-                App(graph, initialThemeMode = ThemeMode.LIGHT)
-            }
+            TestHost { App(graph, initialThemeMode = ThemeMode.LIGHT) }
         }
         settle()
         mainClock.autoAdvance = false
@@ -143,9 +163,7 @@ class ScreenshotTest {
     fun timing() = runDesktopComposeUiTest(width = 1080, height = 2340) {
         val graph = loadedGraph()
         setContent {
-            CompositionLocalProvider(LocalDensity provides Density(2.625f)) {
-                App(graph, initialThemeMode = ThemeMode.LIGHT)
-            }
+            TestHost { App(graph, initialThemeMode = ThemeMode.LIGHT) }
         }
         settle()
         mainClock.autoAdvance = false

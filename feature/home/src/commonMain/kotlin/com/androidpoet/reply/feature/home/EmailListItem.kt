@@ -5,7 +5,6 @@ package com.androidpoet.reply.feature.home
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -34,7 +33,6 @@ import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.graphics.painter.Painter
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.boundsInRoot
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.onSizeChanged
@@ -42,6 +40,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import com.androidpoet.reply.data.Email
 import com.androidpoet.reply.designsystem.component.Avatar
+import com.androidpoet.reply.designsystem.component.ReplyAsyncImage
 import com.androidpoet.reply.designsystem.component.ReplyCard
 import com.androidpoet.reply.designsystem.component.ReplyText
 import com.androidpoet.reply.designsystem.motion.Durations
@@ -201,10 +200,9 @@ fun EmailCardBody(email: Email) {
                 userScrollEnabled = true,
             ) {
                 items(email.attachments) { attachment ->
-                    Image(
-                        painter = painterResource(attachment.image),
+                    ReplyAsyncImage(
+                        image = attachment.image,
                         contentDescription = attachment.contentDesc,
-                        contentScale = ContentScale.Crop,
                         modifier = Modifier
                             .padding(ReplyDimens.grid0_25)
                             .width(150.dp)

@@ -1,7 +1,6 @@
 package com.androidpoet.reply.data
 
 import androidx.compose.runtime.Immutable
-import org.jetbrains.compose.resources.DrawableResource
 
 @Immutable
 data class Account(
@@ -11,7 +10,7 @@ data class Account(
     val lastName: String,
     val email: String,
     val altEmail: String,
-    val avatar: DrawableResource,
+    val avatar: ReplyImage,
     val isCurrentAccount: Boolean = false,
 ) {
     val fullName: String get() = "$firstName $lastName"

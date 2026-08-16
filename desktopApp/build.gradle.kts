@@ -30,6 +30,8 @@ dependencies {
     testImplementation(compose.desktop.currentOs)
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(kotlin("test-junit"))
+    testImplementation(libs.sketch.compose)
+    testImplementation(libs.lifecycle.runtime.compose)
 }
 
 compose.desktop {

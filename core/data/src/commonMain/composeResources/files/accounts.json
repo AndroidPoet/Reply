@@ -7,7 +7,7 @@
       "lastName": "Hansen",
       "email": "hikingfan@gmail.com",
       "altEmail": "hkngfan@outside.com",
-      "avatar": "avatar_10",
+      "avatar": "avatar_10.jpg",
       "isCurrentAccount": true
     },
     {
@@ -17,7 +17,7 @@
       "lastName": "H",
       "email": "jeffersonloveshiking@gmail.com",
       "altEmail": "jeffersonloveshiking@work.com",
-      "avatar": "avatar_2",
+      "avatar": "avatar_2.jpg",
       "isCurrentAccount": false
     },
     {
@@ -27,7 +27,7 @@
       "lastName": "Hansen",
       "email": "jeffersonc@google.com",
       "altEmail": "jeffersonc@gmail.com",
-      "avatar": "avatar_9",
+      "avatar": "avatar_9.jpg",
       "isCurrentAccount": false
     }
   ],
@@ -39,7 +39,7 @@
       "lastName": "Alvarez",
       "email": "tracealvie@gmail.com",
       "altEmail": "tracealvie@gravity.com",
-      "avatar": "avatar_1",
+      "avatar": "avatar_1.jpg",
       "isCurrentAccount": false
     },
     {
@@ -49,7 +49,7 @@
       "lastName": "Trabucco",
       "email": "atrabucco222@gmail.com",
       "altEmail": "atrabucco222@work.com",
-      "avatar": "avatar_3",
+      "avatar": "avatar_3.jpg",
       "isCurrentAccount": false
     },
     {
@@ -59,7 +59,7 @@
       "lastName": "Connors",
       "email": "aliconnors@gmail.com",
       "altEmail": "aliconnors@android.com",
-      "avatar": "avatar_5",
+      "avatar": "avatar_5.jpg",
       "isCurrentAccount": false
     },
     {
@@ -69,7 +69,7 @@
       "lastName": "Williams",
       "email": "albertowilliams124@gmail.com",
       "altEmail": "albertowilliams124@chromeos.com",
-      "avatar": "avatar_0",
+      "avatar": "avatar_0.jpg",
       "isCurrentAccount": false
     },
     {
@@ -79,7 +79,7 @@
       "lastName": "Alen",
       "email": "alen13@gmail.com",
       "altEmail": "alen13@mountainview.gov",
-      "avatar": "avatar_7",
+      "avatar": "avatar_7.jpg",
       "isCurrentAccount": false
     },
     {
@@ -89,7 +89,7 @@
       "lastName": "Express",
       "email": "express@google.com",
       "altEmail": "express@gmail.com",
-      "avatar": "avatar_express",
+      "avatar": "avatar_express.png",
       "isCurrentAccount": false
     },
     {
@@ -99,7 +99,7 @@
       "lastName": "Adams",
       "email": "sandraadams@gmail.com",
       "altEmail": "sandraadams@textera.com",
-      "avatar": "avatar_2",
+      "avatar": "avatar_2.jpg",
       "isCurrentAccount": false
     },
     {
@@ -109,7 +109,7 @@
       "lastName": "Hansen",
       "email": "trevorhandsen@gmail.com",
       "altEmail": "trevorhandsen@express.com",
-      "avatar": "avatar_8",
+      "avatar": "avatar_8.jpg",
       "isCurrentAccount": false
     },
     {
@@ -119,7 +119,7 @@
       "lastName": "Holt",
       "email": "sholt@gmail.com",
       "altEmail": "sholt@art.com",
-      "avatar": "avatar_6",
+      "avatar": "avatar_6.jpg",
       "isCurrentAccount": false
     },
     {
@@ -129,7 +129,7 @@
       "lastName": "Hawkins",
       "email": "fhawkank@gmail.com",
       "altEmail": "fhawkank@thisisme.com",
-      "avatar": "avatar_4",
+      "avatar": "avatar_4.jpg",
       "isCurrentAccount": false
     }
   ]
