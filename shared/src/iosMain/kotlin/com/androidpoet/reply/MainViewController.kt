@@ -9,6 +9,7 @@ import platform.UIKit.UIViewController
 
 private val appGraph by lazy { buildAppGraph(replyDatabaseBuilder().buildReplyDatabase(), createSettingsDataStore()) }
 
+@Suppress("FunctionNaming")
 fun MainViewController(): UIViewController = ComposeUIViewController {
     App(appGraph)
 }

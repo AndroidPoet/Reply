@@ -1,0 +1,67 @@
+build:
+  maxIssues: 0
+
+style:
+  MaxLineLength:
+    maxLineLength: 140
+  MagicNumber:
+    active: false
+  ReturnCount:
+    max: 4
+  UnusedPrivateMember:
+    active: true
+  WildcardImport:
+    active: true
+
+complexity:
+  LongMethod:
+    threshold: 120
+  LongParameterList:
+    functionThreshold: 12
+    constructorThreshold: 12
+    ignoreAnnotated: ['Composable']
+  TooManyFunctions:
+    thresholdInFiles: 20
+    thresholdInClasses: 20
+  CyclomaticComplexMethod:
+    threshold: 20
+
+naming:
+  FunctionNaming:
+    ignoreAnnotated: ['Composable']
+  TopLevelPropertyNaming:
+    active: false
+
+Compose:
+  ModifierMissing:
+    active: true
+  ModifierNaming:
+    active: true
+  ModifierNotUsedAtRoot:
+    active: true
+  ComposableParamOrder:
+    active: true
+  ViewModelForwarding:
+    active: true
+  ViewModelInjection:
+    active: true
+  MutableParams:
+    active: true
+  ContentEmitterReturningValues:
+    active: true
+  MultipleEmitters:
+    active: true
+  PreviewPublic:
+    active: true
+  RememberMissing:
+    active: true
+  UnstableCollections:
+    active: false
+  ModifierReused:
+    active: true
+  DefaultsVisibility:
+    active: true
+  ParameterNaming:
+    active: true
+  Material2:
+    active: false

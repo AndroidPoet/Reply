@@ -37,6 +37,12 @@ kotlin {
             api(libs.sketch.compose.resources)
             api(libs.sketch.http.ktor3)
         }
+        val desktopTest by getting {
+            dependencies {
+                implementation(kotlin("test"))
+                implementation(libs.kotlinx.coroutines.test)
+            }
+        }
     }
 }
 

@@ -67,7 +67,9 @@ class ScreenshotTest {
         waitForIdle()
     }
 
-    private fun loadedGraph() = buildAppGraph(inMemoryReplyDatabaseBuilder().buildReplyDatabase(), createTemporarySettingsDataStore()).also { runBlocking { it.repository.loadBundled() } }
+    private fun loadedGraph() =
+        buildAppGraph(inMemoryReplyDatabaseBuilder().buildReplyDatabase(), createTemporarySettingsDataStore())
+            .also { runBlocking { it.repository.loadBundled() } }
 
     private fun walk(theme: ThemeMode) = runDesktopComposeUiTest(width = 1080, height = 2340) {
         val label = theme.name.lowercase()

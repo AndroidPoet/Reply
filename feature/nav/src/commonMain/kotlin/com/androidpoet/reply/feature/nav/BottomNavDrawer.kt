@@ -27,6 +27,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ripple
@@ -44,6 +45,7 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.androidpoet.reply.data.Account
 import com.androidpoet.reply.data.Mailbox
@@ -144,71 +146,15 @@ fun BottomNavDrawer(
             }
 
             if (state.sandwichState != SandwichState.OPEN) {
-                val shapeInterpolation = (1f - state.navProgress) * foregroundInterpolation
-                val fgShape = remember(shapeInterpolation) {
-                    CutoutTopEdgeShape(
-                        cutoutMargin = ReplyDimens.grid1,
-                        cutoutRoundedCornerRadius = ReplyDimens.grid3,
-                        cutoutVerticalOffset = 0.dp,
-                        cutoutDiameter = ReplyDimens.navigationDrawerProfileImageSizePadded,
-                        topCornerRadius = ReplyDimens.plane16 - 4.dp,
-                        interpolation = shapeInterpolation,
-                    )
-                }
-                val fgColor = colors.elevated(colors.primarySurface, ReplyDimens.plane16)
-                val navItems = remember(folders) { NavigationModel.items(folders) }
-                val listState = rememberLazyListState()
-                LaunchedEffect(state.currentValue) {
-                    if (state.currentValue == DrawerValue.Hidden) listState.scrollToItem(0)
-                }
-                Box(
-                    Modifier
-                        .fillMaxSize()
-                        .padding(top = ReplyDimens.grid3)
-                        .graphicsLayer {
-                            translationY = size.height * 0.15f * state.navProgress -
-                                (1f - foregroundInterpolation) * ReplyDimens.grid3.toPx()
-                            alpha = 1f - state.navProgress
-                        }
-                        .shadow(ReplyDimens.plane16, fgShape, clip = false)
-                        .background(fgColor, fgShape)
-                        .clip(fgShape)
-                        .padding(top = ReplyDimens.grid3 + statusBarTop * topInsetProgress, bottom = ReplyDimens.grid4),
-                ) {
-                    LazyColumn(
-                        state = listState,
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .nestedScroll(state.nestedScrollConnection),
-                        contentPadding = PaddingValues(
-                            top = ReplyDimens.grid3,
-                            bottom = with(density) { state.bottomBarHeight.toDp() },
-                        ),
-                    ) {
-                        if (statusText != null) {
-                            item(key = "sync") {
-                                ReplyText(
-                                    text = statusText,
-                                    style = ReplyTheme.typography.caption,
-                                    color = colors.onPrimarySurfaceMedium,
-                                    modifier = Modifier.padding(start = ReplyDimens.grid4, end = ReplyDimens.grid4, bottom = ReplyDimens.grid1),
-                                )
-                            }
-                        }
-                        items(navItems) { item ->
-                            when (item) {
-                                is NavigationItem.Menu -> NavMenuRow(
-                                    item = item,
-                                    checked = item.mailbox == currentMailbox,
-                                    onClick = { onMenuItemClick(item) },
-                                )
-                                is NavigationItem.Divider -> NavDividerRow(item.title)
-                                is NavigationItem.Folder -> NavFolderRow(item.name)
-                            }
-                        }
-
-                    }
-                }
+                DrawerForeground(
+                    state = state,
+                    foregroundInterpolation = foregroundInterpolation,
+                    topInset = statusBarTop * topInsetProgress,
+                    folders = folders,
+                    currentMailbox = currentMailbox,
+                    statusText = statusText,
+                    onMenuItemClick = onMenuItemClick,
+                )
             }
 
             val imageVisibility = (1f - state.navProgress) * foregroundInterpolation
@@ -221,7 +167,7 @@ fun BottomNavDrawer(
                         scaleY = imageVisibility
                         alpha = imageVisibility
                     }
-                    .clip(androidx.compose.foundation.shape.CircleShape)
+                    .clip(CircleShape)
                     .clickable(
                         enabled = state.sandwichState != SandwichState.OPEN,
                         interactionSource = remember { MutableInteractionSource() },
@@ -238,6 +184,87 @@ fun BottomNavDrawer(
                         contentDescription = "profile avatar image",
                         size = ReplyDimens.navigationDrawerProfileImageSizePadded,
                     )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun DrawerForeground(
+    state: BottomNavDrawerState,
+    foregroundInterpolation: Float,
+    topInset: Dp,
+    folders: List<String>,
+    currentMailbox: Mailbox,
+    statusText: String?,
+    onMenuItemClick: (NavigationItem.Menu) -> Unit,
+) {
+    val colors = ReplyTheme.colors
+    val density = LocalDensity.current
+    val shapeInterpolation = (1f - state.navProgress) * foregroundInterpolation
+    val shape = remember(shapeInterpolation) {
+        CutoutTopEdgeShape(
+            cutoutMargin = ReplyDimens.grid1,
+            cutoutRoundedCornerRadius = ReplyDimens.grid3,
+            cutoutVerticalOffset = 0.dp,
+            cutoutDiameter = ReplyDimens.navigationDrawerProfileImageSizePadded,
+            topCornerRadius = ReplyDimens.plane16 - 4.dp,
+            interpolation = shapeInterpolation,
+        )
+    }
+    val navItems = remember(folders) { NavigationModel.items(folders) }
+    val listState = rememberLazyListState()
+    LaunchedEffect(state.currentValue) {
+        if (state.currentValue == DrawerValue.Hidden) listState.scrollToItem(0)
+    }
+    Box(
+        Modifier
+            .fillMaxSize()
+            .padding(top = ReplyDimens.grid3)
+            .graphicsLayer {
+                translationY = size.height * 0.15f * state.navProgress -
+                    (1f - foregroundInterpolation) * ReplyDimens.grid3.toPx()
+                alpha = 1f - state.navProgress
+            }
+            .shadow(ReplyDimens.plane16, shape, clip = false)
+            .background(colors.elevated(colors.primarySurface, ReplyDimens.plane16), shape)
+            .clip(shape)
+            .padding(top = ReplyDimens.grid3 + topInset, bottom = ReplyDimens.grid4),
+    ) {
+        LazyColumn(
+            state = listState,
+            modifier = Modifier
+                .fillMaxSize()
+                .nestedScroll(state.nestedScrollConnection),
+            contentPadding = PaddingValues(
+                top = ReplyDimens.grid3,
+                bottom = with(density) { state.bottomBarHeight.toDp() },
+            ),
+        ) {
+            if (statusText != null) {
+                item(key = "sync") {
+                    ReplyText(
+                        text = statusText,
+                        style = ReplyTheme.typography.caption,
+                        color = colors.onPrimarySurfaceMedium,
+                        modifier = Modifier.padding(
+                            start = ReplyDimens.grid4,
+                            end = ReplyDimens.grid4,
+                            bottom = ReplyDimens.grid1,
+                        ),
+                    )
+                }
+            }
+            items(navItems) { item ->
+                when (item) {
+                    is NavigationItem.Menu -> NavMenuRow(
+                        item = item,
+                        checked = item.mailbox == currentMailbox,
+                        onClick = { onMenuItemClick(item) },
+                    )
+                    is NavigationItem.Divider -> NavDividerRow(item.title)
+                    is NavigationItem.Folder -> NavFolderRow(item.name)
                 }
             }
         }
@@ -284,7 +311,13 @@ private fun NavFolderRow(name: String) {
             modifier = Modifier.size(24.dp),
         )
         Spacer(Modifier.width(ReplyDimens.grid4))
-        ReplyText(text = name, style = ReplyTheme.typography.subtitle1, color = colors.onPrimarySurfaceMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
+        ReplyText(
+            text = name,
+            style = ReplyTheme.typography.subtitle1,
+            color = colors.onPrimarySurfaceMedium,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+        )
     }
 }
 

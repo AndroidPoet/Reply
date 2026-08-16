@@ -23,9 +23,6 @@ class HomeViewModel(
 
     fun setStarred(email: Email, starred: Boolean) = emailStore.setStarred(email.id, starred)
 
-    fun delete(email: Email) = emailStore.delete(email.id)
-
-    fun archive(email: Email) = emailStore.delete(email.id)
 
     @AssistedFactory
     fun interface Factory {

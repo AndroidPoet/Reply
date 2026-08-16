@@ -46,6 +46,7 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.boundsInRoot
@@ -217,9 +218,9 @@ fun ComposeScreen(
     }
 }
 
-private fun androidx.compose.ui.graphics.Color.compositeOver(background: androidx.compose.ui.graphics.Color): androidx.compose.ui.graphics.Color {
+private fun Color.compositeOver(background: Color): Color {
     val a = alpha
-    return androidx.compose.ui.graphics.Color(
+    return Color(
         red = red * a + background.red * (1 - a),
         green = green * a + background.green * (1 - a),
         blue = blue * a + background.blue * (1 - a),

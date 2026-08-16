@@ -7,6 +7,7 @@
   <img alt="Kotlin" src="https://img.shields.io/badge/Kotlin-2.4.0-blueviolet.svg?logo=kotlin"/>
   <img alt="Ktor" src="https://img.shields.io/badge/Ktor-3.5-blue.svg"/>
   <img alt="Room" src="https://img.shields.io/badge/Room-2.8%20KMP-blue.svg"/>
+  <a href="https://github.com/AndroidPoet/Reply/actions"><img alt="CI" src="https://github.com/AndroidPoet/Reply/actions/workflows/ci.yml/badge.svg"/></a>
   <img alt="Sketch" src="https://img.shields.io/badge/Images-Sketch%204-blue.svg"/>
   <img alt="Compose Multiplatform" src="https://img.shields.io/badge/Compose%20Multiplatform-1.11.1-blue.svg"/>
   <img alt="Navigation 3" src="https://img.shields.io/badge/Navigation-3-blue.svg"/>
@@ -98,6 +99,14 @@ fade-mode / threshold model), `Interpolators` (the platform interpolators), and 
 - [Ktor](https://ktor.io) client + kotlinx.serialization — the sample data lives as JSON in this repo
   (`core/data/src/commonMain/composeResources/files/*.json`), bundled with the app for an instant offline start and
   refreshed from GitHub raw on launch (`ReplyRepository`). `EmailStore` / `AccountStore` are in-memory `StateFlow`s.
+
+## Engineering
+
+See [ARCHITECTURE.md](ARCHITECTURE.md) for the layer map and the reasoning. In short: Room is the single source of
+truth, the repository seeds it from bundled JSON and tops it up from GitHub, everything reaches the UI as `Flow`s,
+screens are stateless composables, and the shell owns navigation/transforms in small `@Stable` state holders.
+Quality gates: **detekt + Compose rules** (`./gradlew detekt`), **23 tests** (motion math, swipe/drawer physics,
+repository with fake API + fixed clock, debounced search, headless screenshots) and **GitHub Actions CI**.
 
 ## Architecture
 

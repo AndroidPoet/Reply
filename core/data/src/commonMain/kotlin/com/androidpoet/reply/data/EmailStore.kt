@@ -64,8 +64,12 @@ class EmailStore(
         )
     }
 
-    fun delete(id: Long) {
-        scope.launch { emailDao.setMailbox(id, Mailbox.TRASH.name) }
+    fun delete(id: Long): Mailbox? = moveTo(id, Mailbox.TRASH)
+
+    fun moveTo(id: Long, mailbox: Mailbox): Mailbox? {
+        val previous = get(id)?.mailbox ?: return null
+        scope.launch { emailDao.setMailbox(id, mailbox.name) }
+        return previous
     }
 
     fun toggleStar(id: Long) {

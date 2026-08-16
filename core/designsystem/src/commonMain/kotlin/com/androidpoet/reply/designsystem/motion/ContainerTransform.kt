@@ -64,6 +64,45 @@ data class ContainerTransformSpec(
     val endContent: @Composable () -> Unit,
 )
 
+@Immutable
+data class ContainerFrame(
+    val maskLeft: Float,
+    val maskTop: Float,
+    val maskWidth: Float,
+    val maskHeight: Float,
+    val startScale: Float,
+    val endScale: Float,
+    val fadeProgress: Float,
+    val shapeMaskProgress: Float,
+)
+
+fun containerFrame(spec: ContainerTransformSpec, progress: Float): ContainerFrame {
+    val t = spec.thresholds
+    val s = spec.startBounds
+    val e = spec.endBounds
+    val scaleProgress = lerpRange(0f, 1f, t.scaleStart, t.scaleEnd, progress)
+    val scaleMaskProgress = lerpRange(0f, 1f, t.scaleMaskStart, t.scaleMaskEnd, progress)
+    val shapeMaskProgress = lerpRange(0f, 1f, t.shapeMaskStart, t.shapeMaskEnd, progress)
+    val fadeProgress = lerpRange(0f, 1f, t.fadeStart, t.fadeEnd, progress)
+    val startScale = lerpRange(1f, e.width / s.width, 0f, 1f, scaleProgress)
+    val endScale = lerpRange(s.width / e.width, 1f, 0f, 1f, scaleProgress)
+    val currentWidth = s.width * startScale
+    val motionX = s.center.x + (e.center.x - s.center.x) * scaleProgress
+    val motionY = s.top + (e.top - s.top) * scaleProgress
+    return ContainerFrame(
+        maskLeft = motionX - currentWidth / 2f,
+        maskTop = motionY,
+        maskWidth = currentWidth,
+        maskHeight = lerpRange(s.height * startScale, e.height * endScale, 0f, 1f, scaleMaskProgress),
+        startScale = startScale,
+        endScale = endScale,
+        fadeProgress = fadeProgress,
+        shapeMaskProgress = shapeMaskProgress,
+    )
+}
+
+private fun corner(start: Float, end: Float, progress: Float): Float = lerpRange(start, end, 0f, 1f, progress)
+
 @Composable
 fun ContainerTransform(
     spec: ContainerTransformSpec,
@@ -71,33 +110,23 @@ fun ContainerTransform(
     modifier: Modifier = Modifier,
 ) {
     val density = LocalDensity.current
-    val t = spec.thresholds
     val s = spec.startBounds
     val e = spec.endBounds
-
-    val scaleProgress = lerpRange(0f, 1f, t.scaleStart, t.scaleEnd, progress)
-    val scaleMaskProgress = lerpRange(0f, 1f, t.scaleMaskStart, t.scaleMaskEnd, progress)
-    val shapeMaskProgress = lerpRange(0f, 1f, t.shapeMaskStart, t.shapeMaskEnd, progress)
-    val fadeProgress = lerpRange(0f, 1f, t.fadeStart, t.fadeEnd, progress)
-
-    val startScale = lerpRange(1f, e.width / s.width, 0f, 1f, scaleProgress)
-    val endScale = lerpRange(s.width / e.width, 1f, 0f, 1f, scaleProgress)
-    val currentWidth = s.width * startScale
-    val currentStartHeight = s.height * startScale
-    val currentEndHeight = e.height * endScale
-
-    val motionX = s.center.x + (e.center.x - s.center.x) * scaleProgress
-    val motionY = s.top + (e.top - s.top) * scaleProgress
-
-    val maskLeft = motionX - currentWidth / 2f
-    val maskTop = motionY
-    val maskHeight = lerpRange(currentStartHeight, currentEndHeight, 0f, 1f, scaleMaskProgress)
+    val frame = containerFrame(spec, progress)
+    val startScale = frame.startScale
+    val endScale = frame.endScale
+    val fadeProgress = frame.fadeProgress
+    val shapeMaskProgress = frame.shapeMaskProgress
+    val currentWidth = frame.maskWidth
+    val maskLeft = frame.maskLeft
+    val maskTop = frame.maskTop
+    val maskHeight = frame.maskHeight
 
     val corners = RoundedCornerShape(
-        topStart = with(density) { lerpRange(spec.startCorners.topLeft, spec.endCorners.topLeft, 0f, 1f, shapeMaskProgress).toDp() },
-        topEnd = with(density) { lerpRange(spec.startCorners.topRight, spec.endCorners.topRight, 0f, 1f, shapeMaskProgress).toDp() },
-        bottomEnd = with(density) { lerpRange(spec.startCorners.bottomRight, spec.endCorners.bottomRight, 0f, 1f, shapeMaskProgress).toDp() },
-        bottomStart = with(density) { lerpRange(spec.startCorners.bottomLeft, spec.endCorners.bottomLeft, 0f, 1f, shapeMaskProgress).toDp() },
+        topStart = with(density) { corner(spec.startCorners.topLeft, spec.endCorners.topLeft, shapeMaskProgress).toDp() },
+        topEnd = with(density) { corner(spec.startCorners.topRight, spec.endCorners.topRight, shapeMaskProgress).toDp() },
+        bottomEnd = with(density) { corner(spec.startCorners.bottomRight, spec.endCorners.bottomRight, shapeMaskProgress).toDp() },
+        bottomStart = with(density) { corner(spec.startCorners.bottomLeft, spec.endCorners.bottomLeft, shapeMaskProgress).toDp() },
     )
     val color = lerp(spec.startColor, spec.endColor, progress)
     val elevation = spec.startElevation + (spec.endElevation - spec.startElevation) * progress

@@ -15,13 +15,17 @@ import kotlinx.serialization.json.Json
 private const val BASE_URL =
     "https://raw.githubusercontent.com/AndroidPoet/Reply/main/core/data/src/commonMain/composeResources/files"
 
+interface ReplyApi {
+    suspend fun accounts(): AccountsPayload
+    suspend fun emails(): EmailsPayload
+}
+
 @Inject
 @SingleIn(AppScope::class)
-class ReplyApi(private val client: HttpClient) {
+class KtorReplyApi(private val client: HttpClient) : ReplyApi {
+    override suspend fun accounts(): AccountsPayload = client.get("$BASE_URL/accounts.json").body()
 
-    suspend fun accounts(): AccountsPayload = client.get("$BASE_URL/accounts.json").body()
-
-    suspend fun emails(): EmailsPayload = client.get("$BASE_URL/emails.json").body()
+    override suspend fun emails(): EmailsPayload = client.get("$BASE_URL/emails.json").body()
 }
 
 private val json = Json {

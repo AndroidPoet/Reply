@@ -20,22 +20,13 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.Immutable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.androidpoet.reply.designsystem.theme.ReplyDimens
 import com.androidpoet.reply.designsystem.theme.ReplyTheme
 import com.androidpoet.reply.designsystem.theme.elevated
-import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.painterResource
-
-@Immutable
-data class MenuSheetItem(
-    val id: String,
-    val title: String,
-    val icon: DrawableResource? = null,
-)
 
 @Composable
 fun MenuBottomSheet(

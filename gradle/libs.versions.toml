@@ -13,6 +13,9 @@ ktor = "3.5.2"
 sketch = "4.6.0"
 room = "2.8.4"
 datastore = "1.2.0"
+kermit = "2.0.8"
+detekt = "1.23.8"
+composeRules = "0.6.4"
 sqlite = "2.7.0"
 ksp = "2.3.11"
 
@@ -49,6 +52,8 @@ sketch-compose-resources = { module = "io.github.panpf.sketch4:sketch-compose-re
 sketch-http-ktor3 = { module = "io.github.panpf.sketch4:sketch-http-ktor3", version.ref = "sketch" }
 
 datastore-preferences-core = { module = "androidx.datastore:datastore-preferences-core", version.ref = "datastore" }
+kermit = { module = "co.touchlab:kermit", version.ref = "kermit" }
+detekt-compose-rules = { module = "io.nlopez.compose.rules:detekt", version.ref = "composeRules" }
 room-runtime = { module = "androidx.room:room-runtime", version.ref = "room" }
 room-compiler = { module = "androidx.room:room-compiler", version.ref = "room" }
 sqlite-bundled = { module = "androidx.sqlite:sqlite-bundled", version.ref = "sqlite" }
@@ -68,3 +73,4 @@ kotlinSerialization = { id = "org.jetbrains.kotlin.plugin.serialization", versio
 metro = { id = "dev.zacsweers.metro", version.ref = "metro" }
 room = { id = "androidx.room", version.ref = "room" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
+detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }

@@ -1,5 +1,6 @@
 package com.androidpoet.reply.data
 
+import co.touchlab.kermit.Logger
 import com.androidpoet.reply.data.local.BundledData
 import com.androidpoet.reply.data.remote.AccountDto
 import com.androidpoet.reply.data.remote.AccountsPayload
@@ -18,8 +19,11 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.withContext
 import kotlin.time.Clock
 import kotlin.time.ExperimentalTime
+
+private const val MIN_REFRESH_INTERVAL_MILLIS = 60_000L
 
 @OptIn(ExperimentalTime::class)
 @Inject
@@ -30,7 +34,11 @@ class ReplyRepository(
     private val imageResolver: ImageResolver,
     private val emailStore: EmailStore,
     private val settings: SettingsRepository,
+    private val dispatchers: DispatcherProvider,
+    private val clock: Clock,
 ) {
+    private val log = Logger.withTag("ReplyRepository")
+
     val source: StateFlow<DataSource> get() = imageResolver.source
 
     private val _syncStatus = MutableStateFlow<SyncStatus>(SyncStatus.Idle)
@@ -41,31 +49,43 @@ class ReplyRepository(
         refresh()
     }
 
-    suspend fun loadBundled() {
-        if (imageResolver.source.value != DataSource.NONE) return
+    suspend fun loadBundled() = withContext(dispatchers.io) {
+        if (imageResolver.source.value != DataSource.NONE) return@withContext
         if (database.emailDao().count() == 0) {
             runCatching { persist(BundledData.accounts(), BundledData.emails()) }
+                .onFailure { log.e(it) { "Seeding from bundled data failed" } }
         }
         imageResolver.setSource(DataSource.BUNDLED)
         emailStore.emails.first { it.isNotEmpty() }
     }
 
-    suspend fun refresh() {
-        if (_syncStatus.value == SyncStatus.Syncing) return
+    suspend fun refreshIfStale(): SyncStatus {
+        val last = settings.lastSyncEpochMillis.first() ?: return refresh()
+        return if (clock.now().toEpochMilliseconds() - last >= MIN_REFRESH_INTERVAL_MILLIS) refresh() else _syncStatus.value
+    }
+
+    suspend fun refresh(): SyncStatus = withContext(dispatchers.io) {
+        if (_syncStatus.value == SyncStatus.Syncing) return@withContext SyncStatus.Syncing
         _syncStatus.value = SyncStatus.Syncing
-        runCatching { persist(api.accounts(), api.emails()) }
-            .onSuccess {
-                val now = Clock.System.now().toEpochMilliseconds()
-                imageResolver.setSource(DataSource.REMOTE)
-                settings.setLastSync(now)
-                _syncStatus.value = SyncStatus.Synced(now)
-            }
-            .onFailure { error ->
-                _syncStatus.value = SyncStatus.Failed(
-                    message = error.message ?: error::class.simpleName.orEmpty(),
-                    lastSyncEpochMillis = settings.lastSyncEpochMillis.first(),
-                )
-            }
+        val status = runCatching { persist(api.accounts(), api.emails()) }
+            .fold(
+                onSuccess = {
+                    val now = clock.now().toEpochMilliseconds()
+                    imageResolver.setSource(DataSource.REMOTE)
+                    settings.setLastSync(now)
+                    log.i { "Synced from remote" }
+                    SyncStatus.Synced(now)
+                },
+                onFailure = { error ->
+                    log.w(error) { "Refresh failed, keeping local data" }
+                    SyncStatus.Failed(
+                        message = error.message ?: error::class.simpleName.orEmpty(),
+                        lastSyncEpochMillis = settings.lastSyncEpochMillis.first(),
+                    )
+                },
+            )
+        _syncStatus.value = status
+        status
     }
 
     private suspend fun persist(accounts: AccountsPayload, emails: EmailsPayload) {

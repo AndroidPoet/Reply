@@ -3,15 +3,19 @@ package com.androidpoet.reply.navigation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.geometry.Rect
 import androidx.navigation3.runtime.NavKey
+import androidx.navigation3.runtime.rememberNavBackStack
+import androidx.savedstate.serialization.SavedStateConfiguration
 import com.androidpoet.reply.data.Email
 import com.androidpoet.reply.data.EmailStore
 import com.androidpoet.reply.data.Mailbox
+import kotlinx.serialization.modules.SerializersModule
+import kotlinx.serialization.modules.polymorphic
+import kotlinx.serialization.modules.subclass
 
 @Stable
 sealed interface Transform {
@@ -33,9 +37,10 @@ sealed interface Transform {
 }
 
 @Stable
-class ReplyNavigator(private val emailStore: EmailStore) {
-    val backStack = mutableStateListOf<NavKey>(HomeRoute())
-
+class ReplyNavigator(
+    private val emailStore: EmailStore,
+    val backStack: MutableList<NavKey>,
+) {
     var lastChangeWasPop by mutableStateOf(false)
         private set
 
@@ -45,7 +50,8 @@ class ReplyNavigator(private val emailStore: EmailStore) {
     private val routesByContentKey = HashMap<String, NavKey>()
 
     init {
-        register(backStack.first())
+        if (backStack.isEmpty()) backStack.add(HomeRoute())
+        backStack.forEach(::register)
     }
 
     fun routeFor(contentKey: Any): NavKey? = routesByContentKey[contentKey.toString()]
@@ -91,8 +97,7 @@ class ReplyNavigator(private val emailStore: EmailStore) {
         push(EmailRoute(email.id))
     }
 
-    fun deleteCurrentEmail() {
-        emailStore.delete(currentEmailId)
+    fun leaveEmailAfterDelete() {
         transform = null
         pop()
     }
@@ -121,4 +126,18 @@ class ReplyNavigator(private val emailStore: EmailStore) {
 }
 
 @Composable
-fun rememberReplyNavigator(emailStore: EmailStore): ReplyNavigator = remember(emailStore) { ReplyNavigator(emailStore) }
+fun rememberReplyNavigator(emailStore: EmailStore): ReplyNavigator {
+    val backStack = rememberNavBackStack(navSavedStateConfiguration, HomeRoute())
+    return remember(emailStore, backStack) { ReplyNavigator(emailStore, backStack) }
+}
+
+private val navSavedStateConfiguration = SavedStateConfiguration {
+    serializersModule = SerializersModule {
+        polymorphic(NavKey::class) {
+            subclass(HomeRoute::class)
+            subclass(EmailRoute::class)
+            subclass(ComposeRoute::class)
+            subclass(SearchRoute::class)
+        }
+    }
+}

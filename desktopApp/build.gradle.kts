@@ -31,6 +31,8 @@ dependencies {
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(kotlin("test-junit"))
     testImplementation(libs.sketch.compose)
+    testImplementation(projects.feature.search)
+    testImplementation(libs.lifecycle.viewmodel)
     testImplementation(libs.lifecycle.runtime.compose)
 }
 

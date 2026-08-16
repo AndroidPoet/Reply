@@ -6,7 +6,13 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import com.androidpoet.reply.data.ReplyRepository
 import com.androidpoet.reply.data.SettingsRepository
+import com.androidpoet.reply.data.DefaultDispatchers
+import com.androidpoet.reply.data.DispatcherProvider
+import com.androidpoet.reply.data.remote.KtorReplyApi
+import com.androidpoet.reply.data.remote.ReplyApi
 import com.androidpoet.reply.data.remote.replyHttpClient
+import kotlin.time.Clock
+import kotlin.time.ExperimentalTime
 import com.androidpoet.reply.database.AccountDao
 import com.androidpoet.reply.database.EmailDao
 import com.androidpoet.reply.database.FolderDao
@@ -44,6 +50,16 @@ interface AppGraph {
     @Provides
     @SingleIn(AppScope::class)
     fun provideScope(): CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+
+    @Provides
+    fun provideApi(impl: KtorReplyApi): ReplyApi = impl
+
+    @Provides
+    fun provideDispatchers(): DispatcherProvider = DefaultDispatchers
+
+    @OptIn(ExperimentalTime::class)
+    @Provides
+    fun provideClock(): Clock = Clock.System
 
     @Provides
     fun provideAccountDao(database: ReplyDatabase): AccountDao = database.accountDao()
