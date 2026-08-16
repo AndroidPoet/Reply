@@ -18,6 +18,7 @@ import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.test.runDesktopComposeUiTest
 import androidx.compose.ui.unit.Density
 import com.androidpoet.reply.di.buildAppGraph
+import kotlinx.coroutines.runBlocking
 import org.junit.Test
 import java.io.File
 import javax.imageio.ImageIO
@@ -38,11 +39,14 @@ class ScreenshotTest {
         waitForIdle()
     }
 
+    private fun loadedGraph() = buildAppGraph().also { runBlocking { it.repository.loadBundled() } }
+
     private fun walk(theme: ThemeMode) = runDesktopComposeUiTest(width = 1080, height = 2340) {
         val label = theme.name.lowercase()
+        val graph = loadedGraph()
         setContent {
             CompositionLocalProvider(LocalDensity provides Density(2.625f)) {
-                App(buildAppGraph(), initialThemeMode = theme)
+                App(graph, initialThemeMode = theme)
             }
         }
         snap(label, "01_home")
@@ -89,9 +93,10 @@ class ScreenshotTest {
 
     @Test
     fun motion() = runDesktopComposeUiTest(width = 1080, height = 2340) {
+        val graph = loadedGraph()
         setContent {
             CompositionLocalProvider(LocalDensity provides Density(2.625f)) {
-                App(buildAppGraph(), initialThemeMode = ThemeMode.LIGHT)
+                App(graph, initialThemeMode = ThemeMode.LIGHT)
             }
         }
         settle()
@@ -136,9 +141,10 @@ class ScreenshotTest {
 
     @Test
     fun timing() = runDesktopComposeUiTest(width = 1080, height = 2340) {
+        val graph = loadedGraph()
         setContent {
             CompositionLocalProvider(LocalDensity provides Density(2.625f)) {
-                App(buildAppGraph(), initialThemeMode = ThemeMode.LIGHT)
+                App(graph, initialThemeMode = ThemeMode.LIGHT)
             }
         }
         settle()

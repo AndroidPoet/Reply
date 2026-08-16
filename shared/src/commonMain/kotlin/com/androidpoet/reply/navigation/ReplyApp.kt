@@ -78,6 +78,7 @@ fun ReplyApp(
     val navigator = rememberReplyNavigator(graph.emailStore)
     val current = navigator.current
     val accounts by graph.accountStore.userAccounts.collectAsStateWithLifecycle()
+    val folders by graph.emailStore.folders.collectAsStateWithLifecycle()
 
     val drawer = rememberBottomNavDrawerState()
     var showThemeMenu by remember { mutableStateOf(false) }
@@ -235,7 +236,7 @@ fun ReplyApp(
             state = drawer,
             currentMailbox = navigator.currentMailbox,
             accounts = accounts,
-            folders = graph.emailStore.getAllFolders(),
+            folders = folders,
             onMenuItemClick = {
                 drawer.close()
                 navigator.navigateToHome(it.mailbox)

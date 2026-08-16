@@ -1,0 +1,136 @@
+{
+  "users": [
+    {
+      "id": 1,
+      "uid": 0,
+      "firstName": "Jeff",
+      "lastName": "Hansen",
+      "email": "hikingfan@gmail.com",
+      "altEmail": "hkngfan@outside.com",
+      "avatar": "avatar_10",
+      "isCurrentAccount": true
+    },
+    {
+      "id": 2,
+      "uid": 0,
+      "firstName": "Jeff",
+      "lastName": "H",
+      "email": "jeffersonloveshiking@gmail.com",
+      "altEmail": "jeffersonloveshiking@work.com",
+      "avatar": "avatar_2",
+      "isCurrentAccount": false
+    },
+    {
+      "id": 3,
+      "uid": 0,
+      "firstName": "Jeff",
+      "lastName": "Hansen",
+      "email": "jeffersonc@google.com",
+      "altEmail": "jeffersonc@gmail.com",
+      "avatar": "avatar_9",
+      "isCurrentAccount": false
+    }
+  ],
+  "contacts": [
+    {
+      "id": 4,
+      "uid": 1,
+      "firstName": "Tracy",
+      "lastName": "Alvarez",
+      "email": "tracealvie@gmail.com",
+      "altEmail": "tracealvie@gravity.com",
+      "avatar": "avatar_1",
+      "isCurrentAccount": false
+    },
+    {
+      "id": 5,
+      "uid": 2,
+      "firstName": "Allison",
+      "lastName": "Trabucco",
+      "email": "atrabucco222@gmail.com",
+      "altEmail": "atrabucco222@work.com",
+      "avatar": "avatar_3",
+      "isCurrentAccount": false
+    },
+    {
+      "id": 6,
+      "uid": 3,
+      "firstName": "Ali",
+      "lastName": "Connors",
+      "email": "aliconnors@gmail.com",
+      "altEmail": "aliconnors@android.com",
+      "avatar": "avatar_5",
+      "isCurrentAccount": false
+    },
+    {
+      "id": 7,
+      "uid": 4,
+      "firstName": "Alberto",
+      "lastName": "Williams",
+      "email": "albertowilliams124@gmail.com",
+      "altEmail": "albertowilliams124@chromeos.com",
+      "avatar": "avatar_0",
+      "isCurrentAccount": false
+    },
+    {
+      "id": 8,
+      "uid": 5,
+      "firstName": "Kim",
+      "lastName": "Alen",
+      "email": "alen13@gmail.com",
+      "altEmail": "alen13@mountainview.gov",
+      "avatar": "avatar_7",
+      "isCurrentAccount": false
+    },
+    {
+      "id": 9,
+      "uid": 6,
+      "firstName": "Google",
+      "lastName": "Express",
+      "email": "express@google.com",
+      "altEmail": "express@gmail.com",
+      "avatar": "avatar_express",
+      "isCurrentAccount": false
+    },
+    {
+      "id": 10,
+      "uid": 7,
+      "firstName": "Sandra",
+      "lastName": "Adams",
+      "email": "sandraadams@gmail.com",
+      "altEmail": "sandraadams@textera.com",
+      "avatar": "avatar_2",
+      "isCurrentAccount": false
+    },
+    {
+      "id": 11,
+      "uid": 8,
+      "firstName": "Trevor",
+      "lastName": "Hansen",
+      "email": "trevorhandsen@gmail.com",
+      "altEmail": "trevorhandsen@express.com",
+      "avatar": "avatar_8",
+      "isCurrentAccount": false
+    },
+    {
+      "id": 12,
+      "uid": 9,
+      "firstName": "Sean",
+      "lastName": "Holt",
+      "email": "sholt@gmail.com",
+      "altEmail": "sholt@art.com",
+      "avatar": "avatar_6",
+      "isCurrentAccount": false
+    },
+    {
+      "id": 13,
+      "uid": 10,
+      "firstName": "Frank",
+      "lastName": "Hawkins",
+      "email": "fhawkank@gmail.com",
+      "altEmail": "fhawkank@thisisme.com",
+      "avatar": "avatar_4",
+      "isCurrentAccount": false
+    }
+  ]
+}

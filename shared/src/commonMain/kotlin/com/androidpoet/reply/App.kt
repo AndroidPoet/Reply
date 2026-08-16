@@ -3,6 +3,7 @@ package com.androidpoet.reply
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -25,6 +26,7 @@ fun App(
         ThemeMode.DARK -> true
         ThemeMode.SYSTEM -> isSystemInDarkTheme()
     }
+    LaunchedEffect(appGraph) { appGraph.repository.load() }
     CompositionLocalProvider(LocalAppGraph provides appGraph) {
         ReplyTheme(darkTheme = darkTheme) {
             ReplyApp(onThemeModeChange = { themeMode = it })
