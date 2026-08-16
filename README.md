@@ -5,6 +5,8 @@
   <a href="https://android-arsenal.com/api?level=24"><img alt="API" src="https://img.shields.io/badge/API-24%2B-brightgreen.svg?style=flat"/></a>
   <img alt="Platform" src="https://img.shields.io/badge/Platform-Android%20%7C%20iOS%20%7C%20Desktop-brightgreen.svg"/> <br>
   <img alt="Kotlin" src="https://img.shields.io/badge/Kotlin-2.4.0-blueviolet.svg?logo=kotlin"/>
+  <img alt="Ktor" src="https://img.shields.io/badge/Ktor-3.5-blue.svg"/>
+  <img alt="Sketch" src="https://img.shields.io/badge/Images-Sketch%204-blue.svg"/>
   <img alt="Compose Multiplatform" src="https://img.shields.io/badge/Compose%20Multiplatform-1.11.1-blue.svg"/>
   <img alt="Navigation 3" src="https://img.shields.io/badge/Navigation-3-blue.svg"/>
   <img alt="DI" src="https://img.shields.io/badge/DI-Metro-orange.svg"/>
@@ -80,7 +82,10 @@ fade-mode / threshold model), `Interpolators` (the platform interpolators), and 
 - [Navigation 3](https://developer.android.com/guide/navigation/navigation-3) — type-safe `NavKey` back stack, `rememberDecoratedNavEntries` (saveable state + entry-scoped ViewModels); screens are switched by an `AnimatedContent` that carries the Material transitions.
 - Lifecycle & ViewModel — `org.jetbrains.androidx.lifecycle`.
 - [Metro](https://github.com/ZacSweers/metro) — compile-time DI (`@Inject`, `@AssistedInject`, `@DependencyGraph`).
-- Compose Resources — Work Sans fonts, vector icons, avatars and photos shared across all targets.
+- [Sketch](https://github.com/panpf/sketch) — image loading (memory/disk cache, async decode, downsampling): photos and avatars are
+  Compose-resource URIs when the bundled data is shown and GitHub raw URLs once the remote data arrives, with the bundled
+  drawable as `error()` fallback.
+- Compose Resources — Work Sans fonts, vector icons, and the bundled copies of the photos.
 - [Ktor](https://ktor.io) client + kotlinx.serialization — the sample data lives as JSON in this repo
   (`core/data/src/commonMain/composeResources/files/*.json`), bundled with the app for an instant offline start and
   refreshed from GitHub raw on launch (`ReplyRepository`). `EmailStore` / `AccountStore` are in-memory `StateFlow`s.
