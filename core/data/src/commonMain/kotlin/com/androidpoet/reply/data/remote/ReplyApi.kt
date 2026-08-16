@@ -8,6 +8,7 @@ import io.ktor.client.call.body
 import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.request.get
+import io.ktor.http.ContentType
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
 
@@ -23,14 +24,15 @@ class ReplyApi(private val client: HttpClient) {
     suspend fun emails(): EmailsPayload = client.get("$BASE_URL/emails.json").body()
 }
 
+private val json = Json {
+    ignoreUnknownKeys = true
+    isLenient = true
+}
+
 fun replyHttpClient(): HttpClient = HttpClient {
     install(ContentNegotiation) {
-        json(
-            Json {
-                ignoreUnknownKeys = true
-                isLenient = true
-            },
-        )
+        json(json)
+        json(json, ContentType.Text.Plain)
     }
     install(HttpTimeout) {
         requestTimeoutMillis = 10_000

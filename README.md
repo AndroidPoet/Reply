@@ -81,13 +81,15 @@ fade-mode / threshold model), `Interpolators` (the platform interpolators), and 
 - Lifecycle & ViewModel — `org.jetbrains.androidx.lifecycle`.
 - [Metro](https://github.com/ZacSweers/metro) — compile-time DI (`@Inject`, `@AssistedInject`, `@DependencyGraph`).
 - Compose Resources — Work Sans fonts, vector icons, avatars and photos shared across all targets.
-- No network / database: `EmailStore` and `AccountStore` are in-memory `StateFlow`s, exactly like the sample.
+- [Ktor](https://ktor.io) client + kotlinx.serialization — the sample data lives as JSON in this repo
+  (`core/data/src/commonMain/composeResources/files/*.json`), bundled with the app for an instant offline start and
+  refreshed from GitHub raw on launch (`ReplyRepository`). `EmailStore` / `AccountStore` are in-memory `StateFlow`s.
 
 ## Architecture
 
 ```
 :shared               # App shell: App, ReplyApp, ReplyNavigator (Nav3 back stack + Material transitions), TransformOverlay, ReplyBottomBar, Metro AppGraph
-:core:data            # Account, Email, EmailAttachment, Mailbox, EmailStore, AccountStore (+ image resources)
+:core:data            # Models, EmailStore/AccountStore, ReplyRepository (Ktor remote + bundled JSON), image resources
 :core:designsystem    # ReplyTheme, palette/type/shape/motion, custom components, cutout shape, fonts/icons
 :feature:home         # Mailbox list, swipe-to-star, long-press menu
 :feature:email        # Email detail with attachment grid
