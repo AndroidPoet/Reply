@@ -6,31 +6,26 @@ import com.androidpoet.reply.data.remote.AccountsPayload
 import com.androidpoet.reply.data.remote.EmailDto
 import com.androidpoet.reply.data.remote.EmailsPayload
 import com.androidpoet.reply.data.remote.ReplyApi
-import com.androidpoet.reply.data.resources.Res
-import com.androidpoet.reply.data.resources.allDrawableResources
-import com.github.panpf.sketch.fetch.newComposeResourceUri
+import com.androidpoet.reply.database.AccountEntity
+import com.androidpoet.reply.database.AttachmentEmbedded
+import com.androidpoet.reply.database.EmailEntity
+import com.androidpoet.reply.database.FolderEntity
+import com.androidpoet.reply.database.ReplyDatabase
 import dev.zacsweers.metro.AppScope
 import dev.zacsweers.metro.Inject
 import dev.zacsweers.metro.SingleIn
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import org.jetbrains.compose.resources.ExperimentalResourceApi
-
-private const val IMAGE_BASE_URL =
-    "https://raw.githubusercontent.com/AndroidPoet/Reply/main/core/data/src/commonMain/composeResources/drawable"
-
-enum class DataSource { NONE, BUNDLED, REMOTE }
+import kotlinx.coroutines.flow.first
 
 @Inject
 @SingleIn(AppScope::class)
 class ReplyRepository(
     private val api: ReplyApi,
-    private val accountStore: AccountStore,
+    private val database: ReplyDatabase,
+    private val imageResolver: ImageResolver,
     private val emailStore: EmailStore,
 ) {
-    private val _source = MutableStateFlow(DataSource.NONE)
-    val source: StateFlow<DataSource> = _source.asStateFlow()
+    val source: StateFlow<DataSource> get() = imageResolver.source
 
     suspend fun load() {
         loadBundled()
@@ -38,61 +33,49 @@ class ReplyRepository(
     }
 
     suspend fun loadBundled() {
-        if (_source.value != DataSource.NONE) return
-        runCatching { publish(BundledData.accounts(), BundledData.emails(), remote = false) }
-            .onSuccess { _source.value = DataSource.BUNDLED }
+        if (imageResolver.source.value != DataSource.NONE) return
+        if (database.emailDao().count() == 0) {
+            runCatching { persist(BundledData.accounts(), BundledData.emails()) }
+        }
+        imageResolver.setSource(DataSource.BUNDLED)
+        emailStore.emails.first { it.isNotEmpty() }
     }
 
     suspend fun refresh() {
-        runCatching { publish(api.accounts(), api.emails(), remote = true) }
-            .onSuccess { _source.value = DataSource.REMOTE }
+        runCatching { persist(api.accounts(), api.emails()) }
+            .onSuccess { imageResolver.setSource(DataSource.REMOTE) }
     }
 
-    private fun publish(accounts: AccountsPayload, emails: EmailsPayload, remote: Boolean) {
-        val image: (String) -> ReplyImage = { name ->
-            ReplyImage(
-                uri = if (remote) remoteImageUri(name) else bundledImageUri(name),
-                fallback = Res.allDrawableResources[name.substringBeforeLast('.')],
-            )
-        }
-        val users = accounts.users.map { it.toAccount(image) }
-        val contacts = accounts.contacts.map { it.toAccount(image) }
-        val byId = (users + contacts).associateBy { it.id }
-        accountStore.replace(users, contacts)
-        emailStore.replace(
-            emails = emails.emails.mapNotNull { it.toEmail(byId, image) },
-            folders = emails.folders,
+    private suspend fun persist(accounts: AccountsPayload, emails: EmailsPayload) {
+        database.accountDao().insertIgnore(
+            accounts.users.map { it.toEntity(isUser = true) } + accounts.contacts.map { it.toEntity(isUser = false) },
         )
+        database.emailDao().insertIgnore(emails.emails.mapIndexed { index, dto -> dto.toEntity(index) })
+        database.folderDao().replaceAll(emails.folders.mapIndexed { index, name -> FolderEntity(name, index) })
     }
 }
 
-@OptIn(ExperimentalResourceApi::class)
-private fun bundledImageUri(fileName: String): String = newComposeResourceUri(Res.getUri("drawable/$fileName"))
-
-private fun remoteImageUri(fileName: String): String = "$IMAGE_BASE_URL/$fileName"
-
-private fun AccountDto.toAccount(image: (String) -> ReplyImage) = Account(
+private fun AccountDto.toEntity(isUser: Boolean) = AccountEntity(
     id = id,
     uid = uid,
     firstName = firstName,
     lastName = lastName,
     email = email,
     altEmail = altEmail,
-    avatar = image(avatar),
-    isCurrentAccount = isCurrentAccount,
+    avatar = avatar,
+    isUser = isUser,
+    isCurrent = isUser && isCurrentAccount,
 )
 
-private fun EmailDto.toEmail(accounts: Map<Long, Account>, image: (String) -> ReplyImage): Email? {
-    val sender = accounts[senderId] ?: return null
-    return Email(
-        id = id,
-        sender = sender,
-        recipients = recipientIds.mapNotNull { accounts[it] },
-        subject = subject,
-        body = body,
-        attachments = attachments.map { EmailAttachment(image(it.image), it.contentDesc) },
-        isImportant = isImportant,
-        isStarred = isStarred,
-        mailbox = runCatching { Mailbox.valueOf(mailbox) }.getOrDefault(Mailbox.INBOX),
-    )
-}
+private fun EmailDto.toEntity(position: Int) = EmailEntity(
+    id = id,
+    senderId = senderId,
+    recipientIds = recipientIds,
+    subject = subject,
+    body = body,
+    attachments = attachments.map { AttachmentEmbedded(it.image, it.contentDesc) },
+    isImportant = isImportant,
+    isStarred = isStarred,
+    mailbox = mailbox,
+    position = position,
+)

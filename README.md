@@ -6,6 +6,7 @@
   <img alt="Platform" src="https://img.shields.io/badge/Platform-Android%20%7C%20iOS%20%7C%20Desktop-brightgreen.svg"/> <br>
   <img alt="Kotlin" src="https://img.shields.io/badge/Kotlin-2.4.0-blueviolet.svg?logo=kotlin"/>
   <img alt="Ktor" src="https://img.shields.io/badge/Ktor-3.5-blue.svg"/>
+  <img alt="Room" src="https://img.shields.io/badge/Room-2.8%20KMP-blue.svg"/>
   <img alt="Sketch" src="https://img.shields.io/badge/Images-Sketch%204-blue.svg"/>
   <img alt="Compose Multiplatform" src="https://img.shields.io/badge/Compose%20Multiplatform-1.11.1-blue.svg"/>
   <img alt="Navigation 3" src="https://img.shields.io/badge/Navigation-3-blue.svg"/>
@@ -86,6 +87,9 @@ fade-mode / threshold model), `Interpolators` (the platform interpolators), and 
   Compose-resource URIs when the bundled data is shown and GitHub raw URLs once the remote data arrives, with the bundled
   drawable as `error()` fallback.
 - Compose Resources — Work Sans fonts, vector icons, and the bundled copies of the photos.
+- [Room KMP](https://developer.android.com/kotlin/multiplatform/room) (`:core:database`, bundled SQLite driver, KSP) — the local
+  source of truth: seeded from the packaged JSON on first launch, topped up from GitHub afterwards (`INSERT OR IGNORE`, so
+  stars / trash / active account survive restarts and refreshes); stores observe DAO `Flow`s.
 - [Ktor](https://ktor.io) client + kotlinx.serialization — the sample data lives as JSON in this repo
   (`core/data/src/commonMain/composeResources/files/*.json`), bundled with the app for an instant offline start and
   refreshed from GitHub raw on launch (`ReplyRepository`). `EmailStore` / `AccountStore` are in-memory `StateFlow`s.
@@ -94,7 +98,8 @@ fade-mode / threshold model), `Interpolators` (the platform interpolators), and 
 
 ```
 :shared               # App shell: App, ReplyApp, ReplyNavigator (Nav3 back stack + Material transitions), TransformOverlay, ReplyBottomBar, Metro AppGraph
-:core:data            # Models, EmailStore/AccountStore, ReplyRepository (Ktor remote + bundled JSON), image resources
+:core:database        # Room entities/DAOs/database + per-platform builders (Android / desktop file / iOS documents, in-memory for tests)
+:core:data            # Models, EmailStore/AccountStore over Room, ReplyRepository (bundled JSON seed + Ktor refresh), ImageResolver
 :core:designsystem    # ReplyTheme, palette/type/shape/motion, custom components, cutout shape, fonts/icons
 :feature:home         # Mailbox list, swipe-to-star, long-press menu
 :feature:email        # Email detail with attachment grid

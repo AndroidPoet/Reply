@@ -4,7 +4,10 @@ import com.androidpoet.reply.data.AccountStore
 import com.androidpoet.reply.data.EmailStore
 import com.androidpoet.reply.data.ReplyRepository
 import com.androidpoet.reply.data.remote.replyHttpClient
-import io.ktor.client.HttpClient
+import com.androidpoet.reply.database.AccountDao
+import com.androidpoet.reply.database.EmailDao
+import com.androidpoet.reply.database.FolderDao
+import com.androidpoet.reply.database.ReplyDatabase
 import com.androidpoet.reply.feature.compose.ComposeViewModel
 import com.androidpoet.reply.feature.email.EmailViewModel
 import com.androidpoet.reply.feature.home.HomeViewModel
@@ -12,7 +15,11 @@ import dev.zacsweers.metro.AppScope
 import dev.zacsweers.metro.DependencyGraph
 import dev.zacsweers.metro.Provides
 import dev.zacsweers.metro.SingleIn
-import dev.zacsweers.metro.createGraph
+import dev.zacsweers.metro.createGraphFactory
+import io.ktor.client.HttpClient
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 
 @DependencyGraph(AppScope::class)
 interface AppGraph {
@@ -27,6 +34,24 @@ interface AppGraph {
     @Provides
     @SingleIn(AppScope::class)
     fun provideHttpClient(): HttpClient = replyHttpClient()
+
+    @Provides
+    @SingleIn(AppScope::class)
+    fun provideScope(): CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+
+    @Provides
+    fun provideAccountDao(database: ReplyDatabase): AccountDao = database.accountDao()
+
+    @Provides
+    fun provideEmailDao(database: ReplyDatabase): EmailDao = database.emailDao()
+
+    @Provides
+    fun provideFolderDao(database: ReplyDatabase): FolderDao = database.folderDao()
+
+    @DependencyGraph.Factory
+    interface Factory {
+        fun create(@Provides database: ReplyDatabase): AppGraph
+    }
 }
 
-fun buildAppGraph(): AppGraph = createGraph<AppGraph>()
+fun buildAppGraph(database: ReplyDatabase): AppGraph = createGraphFactory<AppGraph.Factory>().create(database)

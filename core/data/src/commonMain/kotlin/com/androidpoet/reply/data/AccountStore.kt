@@ -1,43 +1,53 @@
 package com.androidpoet.reply.data
 
+import com.androidpoet.reply.database.AccountDao
+import com.androidpoet.reply.database.AccountEntity
 import dev.zacsweers.metro.AppScope
 import dev.zacsweers.metro.Inject
 import dev.zacsweers.metro.SingleIn
-import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 
 @Inject
 @SingleIn(AppScope::class)
-class AccountStore {
-    private val _userAccounts = MutableStateFlow<List<Account>>(emptyList())
-    val userAccounts: StateFlow<List<Account>> = _userAccounts.asStateFlow()
+class AccountStore(
+    private val dao: AccountDao,
+    private val imageResolver: ImageResolver,
+    private val scope: CoroutineScope,
+) {
+    val allAccounts: StateFlow<List<Account>> = combine(dao.observeAll(), imageResolver.source) { entities, _ ->
+        entities.map { it.toAccount() }
+    }.stateIn(scope, SharingStarted.Eagerly, emptyList())
 
-    private var contacts: List<Account> = emptyList()
+    val userAccounts: StateFlow<List<Account>> = allAccounts
+        .map { list -> list.filter { it.isUser } }
+        .stateIn(scope, SharingStarted.Eagerly, emptyList())
 
-    fun replace(users: List<Account>, contacts: List<Account>) {
-        val current = _userAccounts.value.firstOrNull { it.isCurrentAccount }?.id
-        _userAccounts.value = if (current != null && users.any { it.id == current }) {
-            users.map { it.copy(isCurrentAccount = it.id == current) }
-        } else {
-            users
-        }
-        this.contacts = contacts
+    fun getDefaultUserAccount(): Account? =
+        userAccounts.value.firstOrNull { it.isCurrentAccount } ?: userAccounts.value.firstOrNull()
+
+    fun getAllUserAccounts(): List<Account> = userAccounts.value
+
+    fun isUserAccount(uid: Long): Boolean = userAccounts.value.any { it.uid == uid }
+
+    fun setCurrentUserAccount(accountId: Long) {
+        scope.launch { dao.setCurrent(accountId) }
     }
 
-    fun getDefaultUserAccount(): Account? = _userAccounts.value.firstOrNull { it.isCurrentAccount } ?: _userAccounts.value.firstOrNull()
-
-    fun getAllUserAccounts(): List<Account> = _userAccounts.value
-
-    fun isUserAccount(uid: Long): Boolean = _userAccounts.value.any { it.uid == uid }
-
-    fun setCurrentUserAccount(accountId: Long): Boolean {
-        val current = _userAccounts.value
-        val updated = current.map { it.copy(isCurrentAccount = it.id == accountId) }
-        if (updated == current) return false
-        _userAccounts.value = updated
-        return true
-    }
-
-    fun getContactAccountById(accountId: Long): Account? = contacts.firstOrNull { it.id == accountId }
+    private fun AccountEntity.toAccount() = Account(
+        id = id,
+        uid = uid,
+        firstName = firstName,
+        lastName = lastName,
+        email = email,
+        altEmail = altEmail,
+        avatar = imageResolver.image(avatar),
+        isCurrentAccount = isCurrent,
+        isUser = isUser,
+    )
 }

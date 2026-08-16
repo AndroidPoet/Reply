@@ -12,6 +12,7 @@ data class Account(
     val altEmail: String,
     val avatar: ReplyImage,
     val isCurrentAccount: Boolean = false,
+    val isUser: Boolean = false,
 ) {
     val fullName: String get() = "$firstName $lastName"
 }

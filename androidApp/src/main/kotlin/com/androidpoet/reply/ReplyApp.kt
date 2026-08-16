@@ -2,6 +2,8 @@ package com.androidpoet.reply
 
 import android.app.Application
 import com.androidpoet.reply.di.AppGraph
+import com.androidpoet.reply.database.buildReplyDatabase
+import com.androidpoet.reply.database.replyDatabaseBuilder
 import com.androidpoet.reply.di.buildAppGraph
 
 class ReplyApp : Application() {
@@ -10,6 +12,6 @@ class ReplyApp : Application() {
 
     override fun onCreate() {
         super.onCreate()
-        appGraph = buildAppGraph()
+        appGraph = buildAppGraph(replyDatabaseBuilder(this).buildReplyDatabase())
     }
 }
