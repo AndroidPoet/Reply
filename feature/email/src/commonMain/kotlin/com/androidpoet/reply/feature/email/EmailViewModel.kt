@@ -19,7 +19,7 @@ class EmailViewModel(
 ) : ViewModel() {
     val email: StateFlow<Email?> = emailStore.emails
         .map { list -> list.firstOrNull { it.id == emailId } }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, emailStore.get(emailId))
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emailStore.get(emailId))
 
     fun toggleStar() = emailStore.toggleStar(emailId)
 

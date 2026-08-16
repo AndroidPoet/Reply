@@ -85,6 +85,12 @@ class ReplyNavigator(private val emailStore: EmailStore) {
 
     fun openSearch() = push(SearchRoute)
 
+    fun openEmail(email: Email) {
+        cardGeometry.remove(email.id)
+        transform = null
+        push(EmailRoute(email.id))
+    }
+
     fun deleteCurrentEmail() {
         emailStore.delete(currentEmailId)
         transform = null

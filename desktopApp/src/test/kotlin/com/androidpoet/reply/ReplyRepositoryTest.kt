@@ -2,6 +2,7 @@ package com.androidpoet.reply
 
 import com.androidpoet.reply.data.DataSource
 import com.androidpoet.reply.database.buildReplyDatabase
+import com.androidpoet.reply.datastore.createTemporarySettingsDataStore
 import com.androidpoet.reply.database.inMemoryReplyDatabaseBuilder
 import com.androidpoet.reply.di.buildAppGraph
 import kotlinx.coroutines.flow.first
@@ -14,7 +15,7 @@ class ReplyRepositoryTest {
 
     @Test
     fun bundledDataLoads() = runBlocking {
-        val graph = buildAppGraph(inMemoryReplyDatabaseBuilder().buildReplyDatabase())
+        val graph = buildAppGraph(inMemoryReplyDatabaseBuilder().buildReplyDatabase(), createTemporarySettingsDataStore())
         graph.repository.loadBundled()
         assertEquals(DataSource.BUNDLED, graph.repository.source.value)
         assertEquals(12, graph.emailStore.emails.value.size)
@@ -25,18 +26,18 @@ class ReplyRepositoryTest {
     @Test
     fun starPersistsInDatabase() = runBlocking {
         val database = inMemoryReplyDatabaseBuilder().buildReplyDatabase()
-        val graph = buildAppGraph(database)
+        val graph = buildAppGraph(database, createTemporarySettingsDataStore())
         graph.repository.loadBundled()
         graph.emailStore.setStarred(1L, true)
         graph.emailStore.emails.first { list -> list.first { it.id == 1L }.isStarred }
-        val again = buildAppGraph(database)
+        val again = buildAppGraph(database, createTemporarySettingsDataStore())
         again.repository.loadBundled()
         assertTrue(again.emailStore.emails.value.first { it.id == 1L }.isStarred)
     }
 
     @Test
     fun remoteDataLoadsFromGitHub() = runBlocking {
-        val graph = buildAppGraph(inMemoryReplyDatabaseBuilder().buildReplyDatabase())
+        val graph = buildAppGraph(inMemoryReplyDatabaseBuilder().buildReplyDatabase(), createTemporarySettingsDataStore())
         graph.repository.load()
         assertEquals(DataSource.REMOTE, graph.repository.source.value)
         assertTrue(graph.emailStore.emails.value.any { it.subject == "Bonjour from Paris" })

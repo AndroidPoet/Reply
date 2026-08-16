@@ -31,6 +31,7 @@ kotlin {
             implementation(compose.ui)
             implementation(compose.components.resources)
             api(projects.core.database)
+            api(projects.core.datastore)
             implementation(libs.kotlinx.coroutines.core)
             implementation(libs.kotlinx.serialization.json)
             api(libs.ktor.client.core)

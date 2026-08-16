@@ -7,11 +7,12 @@ import androidx.compose.ui.window.WindowPosition
 import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
 import com.androidpoet.reply.database.buildReplyDatabase
+import com.androidpoet.reply.datastore.createSettingsDataStore
 import com.androidpoet.reply.database.replyDatabaseBuilder
 import com.androidpoet.reply.di.buildAppGraph
 
 fun main() {
-    val appGraph = buildAppGraph(replyDatabaseBuilder().buildReplyDatabase())
+    val appGraph = buildAppGraph(replyDatabaseBuilder().buildReplyDatabase(), createSettingsDataStore())
     application {
         Window(
             onCloseRequest = ::exitApplication,

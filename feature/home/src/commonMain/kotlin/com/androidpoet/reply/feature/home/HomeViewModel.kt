@@ -19,7 +19,7 @@ class HomeViewModel(
 ) : ViewModel() {
     val emails: StateFlow<List<Email>> = emailStore
         .getEmails(mailbox)
-        .stateIn(viewModelScope, SharingStarted.Eagerly, emailStore.snapshot(mailbox))
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emailStore.snapshot(mailbox))
 
     fun setStarred(email: Email, starred: Boolean) = emailStore.setStarred(email.id, starred)
 

@@ -67,6 +67,7 @@ fun BottomNavDrawer(
     onMenuItemClick: (NavigationItem.Menu) -> Unit,
     onAccountClick: (Account) -> Unit,
     modifier: Modifier = Modifier,
+    statusText: String? = null,
 ) {
     val colors = ReplyTheme.colors
     val density = LocalDensity.current
@@ -184,6 +185,16 @@ fun BottomNavDrawer(
                             bottom = with(density) { state.bottomBarHeight.toDp() },
                         ),
                     ) {
+                        if (statusText != null) {
+                            item(key = "sync") {
+                                ReplyText(
+                                    text = statusText,
+                                    style = ReplyTheme.typography.caption,
+                                    color = colors.onPrimarySurfaceMedium,
+                                    modifier = Modifier.padding(start = ReplyDimens.grid4, end = ReplyDimens.grid4, bottom = ReplyDimens.grid1),
+                                )
+                            }
+                        }
                         items(navItems) { item ->
                             when (item) {
                                 is NavigationItem.Menu -> NavMenuRow(
@@ -195,6 +206,7 @@ fun BottomNavDrawer(
                                 is NavigationItem.Folder -> NavFolderRow(item.name)
                             }
                         }
+
                     }
                 }
             }

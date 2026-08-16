@@ -14,9 +14,14 @@ import com.androidpoet.reply.database.ReplyDatabase
 import dev.zacsweers.metro.AppScope
 import dev.zacsweers.metro.Inject
 import dev.zacsweers.metro.SingleIn
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
+import kotlin.time.Clock
+import kotlin.time.ExperimentalTime
 
+@OptIn(ExperimentalTime::class)
 @Inject
 @SingleIn(AppScope::class)
 class ReplyRepository(
@@ -24,8 +29,12 @@ class ReplyRepository(
     private val database: ReplyDatabase,
     private val imageResolver: ImageResolver,
     private val emailStore: EmailStore,
+    private val settings: SettingsRepository,
 ) {
     val source: StateFlow<DataSource> get() = imageResolver.source
+
+    private val _syncStatus = MutableStateFlow<SyncStatus>(SyncStatus.Idle)
+    val syncStatus: StateFlow<SyncStatus> = _syncStatus.asStateFlow()
 
     suspend fun load() {
         loadBundled()
@@ -42,8 +51,21 @@ class ReplyRepository(
     }
 
     suspend fun refresh() {
+        if (_syncStatus.value == SyncStatus.Syncing) return
+        _syncStatus.value = SyncStatus.Syncing
         runCatching { persist(api.accounts(), api.emails()) }
-            .onSuccess { imageResolver.setSource(DataSource.REMOTE) }
+            .onSuccess {
+                val now = Clock.System.now().toEpochMilliseconds()
+                imageResolver.setSource(DataSource.REMOTE)
+                settings.setLastSync(now)
+                _syncStatus.value = SyncStatus.Synced(now)
+            }
+            .onFailure { error ->
+                _syncStatus.value = SyncStatus.Failed(
+                    message = error.message ?: error::class.simpleName.orEmpty(),
+                    lastSyncEpochMillis = settings.lastSyncEpochMillis.first(),
+                )
+            }
     }
 
     private suspend fun persist(accounts: AccountsPayload, emails: EmailsPayload) {

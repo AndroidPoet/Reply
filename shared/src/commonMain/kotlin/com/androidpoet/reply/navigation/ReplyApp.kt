@@ -20,6 +20,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.foundation.layout.padding
+import kotlinx.coroutines.launch
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
@@ -39,7 +43,7 @@ import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberDecoratedNavEntries
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
-import com.androidpoet.reply.ThemeMode
+import com.androidpoet.reply.data.ThemeMode
 import com.androidpoet.reply.data.Email
 import com.androidpoet.reply.data.Mailbox
 import com.androidpoet.reply.designsystem.component.BottomAppBarFabOverhang
@@ -79,6 +83,11 @@ fun ReplyApp(
     val current = navigator.current
     val accounts by graph.accountStore.userAccounts.collectAsStateWithLifecycle()
     val folders by graph.emailStore.folders.collectAsStateWithLifecycle()
+    val syncStatus by graph.repository.syncStatus.collectAsStateWithLifecycle()
+    val lastSync by graph.settings.lastSyncEpochMillis.collectAsStateWithLifecycle(initialValue = null)
+    val now by rememberNow()
+    val snackbarHostState = remember { SnackbarHostState() }
+    val uiScope = rememberCoroutineScope()
 
     val drawer = rememberBottomNavDrawerState()
     var showThemeMenu by remember { mutableStateOf(false) }
@@ -187,7 +196,7 @@ fun ReplyApp(
                         cardTranslationY = { composeExit.value },
                     )
                 }
-                is SearchRoute -> SearchScreen(onBack = navigator::goBack)
+                is SearchRoute -> SearchRouteContent(onResultClick = navigator::openEmail, onBack = navigator::goBack)
             }
         }
 
@@ -242,6 +251,17 @@ fun ReplyApp(
                 navigator.navigateToHome(it.mailbox)
             },
             onAccountClick = { graph.accountStore.setCurrentUserAccount(it.id) },
+            statusText = syncStatusText(syncStatus, lastSync, now),
+        )
+
+        SyncProgress(status = syncStatus, modifier = Modifier.align(Alignment.TopCenter))
+        SyncSnackbarHost(
+            status = syncStatus,
+            hostState = snackbarHostState,
+            onRetry = { uiScope.launch { graph.repository.refresh() } },
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(bottom = with(density) { barHeightPx.toDp() } + ReplyDimens.grid1),
         )
 
         val fabOverhangPx = with(density) { BottomAppBarFabOverhang.toPx() }
@@ -337,6 +357,21 @@ private fun EmailRouteContent(emailId: Long, onNavigateUp: () -> Unit) {
     val viewModel = rememberViewModel(key = "email_$emailId") { graph.emailViewModelFactory.create(emailId) }
     val email by viewModel.email.collectAsStateWithLifecycle()
     EmailScreen(email = email, onNavigateUp = onNavigateUp)
+}
+
+@Composable
+private fun SearchRouteContent(onResultClick: (Email) -> Unit, onBack: () -> Unit) {
+    val graph = LocalAppGraph.current
+    val viewModel = rememberViewModel(key = "search") { graph.searchViewModel }
+    val query by viewModel.query.collectAsStateWithLifecycle()
+    val results by viewModel.results.collectAsStateWithLifecycle()
+    SearchScreen(
+        query = query,
+        onQueryChange = viewModel::onQueryChange,
+        results = results,
+        onResultClick = onResultClick,
+        onBack = onBack,
+    )
 }
 
 @Composable

@@ -24,7 +24,9 @@ import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.test.runDesktopComposeUiTest
 import androidx.compose.ui.unit.Density
 import com.androidpoet.reply.database.buildReplyDatabase
+import com.androidpoet.reply.datastore.createTemporarySettingsDataStore
 import com.androidpoet.reply.database.inMemoryReplyDatabaseBuilder
+import com.androidpoet.reply.data.ThemeMode
 import com.androidpoet.reply.di.buildAppGraph
 import kotlinx.coroutines.runBlocking
 import org.junit.Test
@@ -65,7 +67,7 @@ class ScreenshotTest {
         waitForIdle()
     }
 
-    private fun loadedGraph() = buildAppGraph(inMemoryReplyDatabaseBuilder().buildReplyDatabase()).also { runBlocking { it.repository.loadBundled() } }
+    private fun loadedGraph() = buildAppGraph(inMemoryReplyDatabaseBuilder().buildReplyDatabase(), createTemporarySettingsDataStore()).also { runBlocking { it.repository.loadBundled() } }
 
     private fun walk(theme: ThemeMode) = runDesktopComposeUiTest(width = 1080, height = 2340) {
         val label = theme.name.lowercase()

@@ -6,6 +6,8 @@ import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -22,10 +24,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
@@ -33,9 +32,11 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
+import com.androidpoet.reply.data.Email
 import com.androidpoet.reply.data.SearchSuggestion
 import com.androidpoet.reply.data.SearchSuggestionIcon
 import com.androidpoet.reply.data.SearchSuggestionStore
+import com.androidpoet.reply.designsystem.component.Avatar
 import com.androidpoet.reply.designsystem.component.ReplyDivider
 import com.androidpoet.reply.designsystem.component.ReplyIconButton
 import com.androidpoet.reply.designsystem.component.ReplyText
@@ -50,12 +51,15 @@ import org.jetbrains.compose.resources.painterResource
 
 @Composable
 fun SearchScreen(
+    query: String,
+    onQueryChange: (String) -> Unit,
+    results: List<Email>,
+    onResultClick: (Email) -> Unit,
     onBack: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val colors = ReplyTheme.colors
     val typography = ReplyTheme.typography
-    var query by remember { mutableStateOf("") }
     val focus = remember { FocusRequester() }
     LaunchedEffect(Unit) { focus.requestFocus() }
 
@@ -90,7 +94,7 @@ fun SearchScreen(
                 }
                 BasicTextField(
                     value = query,
-                    onValueChange = { query = it },
+                    onValueChange = onQueryChange,
                     singleLine = true,
                     textStyle = typography.subtitle1.copy(color = colors.onSurfaceHigh),
                     cursorBrush = SolidColor(colors.secondary),
@@ -112,15 +116,50 @@ fun SearchScreen(
         }
         ReplyDivider(color = colors.onSurfaceStroke)
 
-        Column(
-            Modifier
-                .fillMaxSize()
-                .verticalScroll(rememberScrollState()),
-        ) {
-            SuggestionTitle("YESTERDAY")
-            SearchSuggestionStore.YESTERDAY_SUGGESTIONS.forEach { SuggestionItem(it) }
-            SuggestionTitle("THIS WEEK")
-            SearchSuggestionStore.THIS_WEEK_SUGGESTIONS.forEach { SuggestionItem(it) }
+        if (query.isBlank()) {
+            Column(
+                Modifier
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState()),
+            ) {
+                SuggestionTitle("YESTERDAY")
+                SearchSuggestionStore.YESTERDAY_SUGGESTIONS.forEach { SuggestionItem(it) }
+                SuggestionTitle("THIS WEEK")
+                SearchSuggestionStore.THIS_WEEK_SUGGESTIONS.forEach { SuggestionItem(it) }
+            }
+        } else {
+            LazyColumn(Modifier.fillMaxSize()) {
+                if (results.isEmpty()) {
+                    item { SuggestionTitle("NO RESULTS") }
+                } else {
+                    item { SuggestionTitle("${results.size} RESULTS") }
+                    items(results, key = { it.id }) { email -> ResultItem(email, onClick = { onResultClick(email) }) }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun ResultItem(email: Email, onClick: () -> Unit) {
+    val colors = ReplyTheme.colors
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .padding(horizontal = ReplyDimens.grid3, vertical = ReplyDimens.grid2),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Avatar(image = email.sender.avatar, contentDescription = null, size = 40.dp)
+        Column(Modifier.padding(start = ReplyDimens.grid2)) {
+            ReplyText(text = email.subject, style = ReplyTheme.typography.body1, color = colors.onSurfaceHigh, maxLines = 1)
+            ReplyText(
+                text = email.senderPreview,
+                style = ReplyTheme.typography.caption,
+                color = colors.onSurfaceMedium,
+                maxLines = 1,
+                modifier = Modifier.padding(top = ReplyDimens.grid0_5),
+            )
         }
     }
 }

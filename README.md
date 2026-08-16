@@ -90,6 +90,11 @@ fade-mode / threshold model), `Interpolators` (the platform interpolators), and 
 - [Room KMP](https://developer.android.com/kotlin/multiplatform/room) (`:core:database`, bundled SQLite driver, KSP) — the local
   source of truth: seeded from the packaged JSON on first launch, topped up from GitHub afterwards (`INSERT OR IGNORE`, so
   stars / trash / active account survive restarts and refreshes); stores observe DAO `Flow`s.
+- [DataStore](https://developer.android.com/kotlin/multiplatform/datastore) (`:core:datastore`) — theme mode and last-sync time as `Flow`s.
+- Sync status (`SyncStatus` Idle/Syncing/Synced/Failed) drives a 2dp progress line, a Retry snackbar when offline, and a
+  "Synced 2 min ago" caption in the drawer (ticking `produceState` clock).
+- Flows: DAO flows → `combine` → `stateIn(WhileSubscribed)` in ViewModels; search is `debounce` + `distinctUntilChanged` +
+  `flatMapLatest` over the mail store with live results.
 - [Ktor](https://ktor.io) client + kotlinx.serialization — the sample data lives as JSON in this repo
   (`core/data/src/commonMain/composeResources/files/*.json`), bundled with the app for an instant offline start and
   refreshed from GitHub raw on launch (`ReplyRepository`). `EmailStore` / `AccountStore` are in-memory `StateFlow`s.
@@ -98,6 +103,7 @@ fade-mode / threshold model), `Interpolators` (the platform interpolators), and 
 
 ```
 :shared               # App shell: App, ReplyApp, ReplyNavigator (Nav3 back stack + Material transitions), TransformOverlay, ReplyBottomBar, Metro AppGraph
+:core:datastore       # Preferences DataStore (per-platform file locations)
 :core:database        # Room entities/DAOs/database + per-platform builders (Android / desktop file / iOS documents, in-memory for tests)
 :core:data            # Models, EmailStore/AccountStore over Room, ReplyRepository (bundled JSON seed + Ktor refresh), ImageResolver
 :core:designsystem    # ReplyTheme, palette/type/shape/motion, custom components, cutout shape, fonts/icons
