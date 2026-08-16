@@ -254,6 +254,8 @@ fun ReplyApp(
         navigateToHome(Mailbox.INBOX)
     }
 
+    PrewarmImages()
+
     // android:windowBackground = ?android:colorBackground
     BoxWithConstraints(Modifier.fillMaxSize().background(colors.background)) {
         val rootWidthPx = with(density) { maxWidth.toPx() }
