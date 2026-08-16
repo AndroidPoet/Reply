@@ -42,6 +42,23 @@ class ReplyNavigator(private val emailStore: EmailStore) {
     var transform by mutableStateOf<Transform?>(null)
 
     private val cardGeometry = HashMap<Long, Pair<Rect, Float>>()
+    private val routesByContentKey = HashMap<String, NavKey>()
+
+    init {
+        register(backStack.first())
+    }
+
+    fun routeFor(contentKey: Any): NavKey? = routesByContentKey[contentKey.toString()]
+
+    private fun register(route: NavKey) {
+        routesByContentKey[route.toString()] = route
+    }
+
+    private fun push(route: NavKey) {
+        lastChangeWasPop = false
+        register(route)
+        backStack.add(route)
+    }
 
     val current: NavKey get() = backStack.last()
 
@@ -51,28 +68,22 @@ class ReplyNavigator(private val emailStore: EmailStore) {
     val currentEmailId: Long get() = (current as? EmailRoute)?.emailId ?: -1L
 
     fun navigateToHome(mailbox: Mailbox) {
-        lastChangeWasPop = false
         backStack.clear()
-        backStack.add(HomeRoute(mailbox))
+        push(HomeRoute(mailbox))
     }
 
     fun navigateToCompose(replyToId: Long, fabBounds: Rect) {
-        lastChangeWasPop = false
         transform = Transform.FabToCompose(replyToId, fabBounds)
-        backStack.add(ComposeRoute(replyToId))
+        push(ComposeRoute(replyToId))
     }
 
     fun openEmail(email: Email, cardBounds: Rect, topLeftCornerPx: Float) {
-        lastChangeWasPop = false
         cardGeometry[email.id] = cardBounds to topLeftCornerPx
         transform = Transform.CardToEmail(email, cardBounds, topLeftCornerPx, entering = true)
-        backStack.add(EmailRoute(email.id))
+        push(EmailRoute(email.id))
     }
 
-    fun openSearch() {
-        lastChangeWasPop = false
-        backStack.add(SearchRoute)
-    }
+    fun openSearch() = push(SearchRoute)
 
     fun deleteCurrentEmail() {
         emailStore.delete(currentEmailId)

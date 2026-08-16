@@ -197,10 +197,10 @@ fun ReplyApp(
                 rememberViewModelStoreNavEntryDecorator(),
             ),
             entryProvider = entryProvider {
-                entry<HomeRoute>(clazzContentKey = { it }) { routeContent(it) }
-                entry<EmailRoute>(clazzContentKey = { it }) { routeContent(it) }
-                entry<ComposeRoute>(clazzContentKey = { it }) { routeContent(it) }
-                entry<SearchRoute>(clazzContentKey = { it }) { routeContent(it) }
+                entry<HomeRoute> { routeContent(it) }
+                entry<EmailRoute> { routeContent(it) }
+                entry<ComposeRoute> { routeContent(it) }
+                entry<SearchRoute> { routeContent(it) }
             },
         )
         val depth = navigator.backStack.size
@@ -209,15 +209,15 @@ fun ReplyApp(
             contentKey = { it.contentKey },
             transitionSpec = {
                 materialTransition(
-                    from = initialState.contentKey as? NavKey,
-                    to = targetState.contentKey as? NavKey,
+                    from = navigator.routeFor(initialState.contentKey),
+                    to = navigator.routeFor(targetState.contentKey),
                     pop = navigator.lastChangeWasPop,
                     zIndex = depth.toFloat(),
                 )
             },
         ) { entry ->
-            val route = entry.contentKey as NavKey
-            if (route in navigator.backStack) entry.Content() else routeContent(route)
+            val route = navigator.routeFor(entry.contentKey)
+            if (route == null || route in navigator.backStack) entry.Content() else routeContent(route)
         }
 
         navigator.transform?.let { running ->

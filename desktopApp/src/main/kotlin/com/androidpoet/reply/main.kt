@@ -1,5 +1,6 @@
 package com.androidpoet.reply
 
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.WindowPosition
@@ -13,6 +14,7 @@ fun main() {
         Window(
             onCloseRequest = ::exitApplication,
             title = "Reply",
+            icon = painterResource("reply_icon.png"),
             state = rememberWindowState(
                 position = WindowPosition.Aligned(androidx.compose.ui.Alignment.Center),
                 width = 412.dp,
