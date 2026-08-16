@@ -5,7 +5,6 @@ import com.androidpoet.reply.di.AppGraph
 import com.androidpoet.reply.di.buildAppGraph
 
 class ReplyApp : Application() {
-
     lateinit var appGraph: AppGraph
         private set
 

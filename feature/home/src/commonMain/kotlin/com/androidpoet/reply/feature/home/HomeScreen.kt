@@ -20,9 +20,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalLayoutDirection
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.androidpoet.reply.data.Email
 import com.androidpoet.reply.designsystem.component.MenuBottomSheet
 import com.androidpoet.reply.designsystem.component.MenuSheetItem
@@ -34,24 +34,19 @@ import com.androidpoet.reply.designsystem.resources.ic_reply
 import com.androidpoet.reply.designsystem.resources.ic_reply_all
 import com.androidpoet.reply.designsystem.theme.ReplyDimens
 import com.androidpoet.reply.designsystem.theme.ReplyTheme
-import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 
-/**
- * `HomeFragment`: the mailbox list. Cards open the email; long-press shows the email action
- * sheet; a rightward swipe stars/unstars.
- *
- * [scrollConnection] lets the app shell hide the bottom app bar on scroll (`hideOnScroll`).
- */
 @Composable
 fun HomeScreen(
-    viewModel: HomeViewModel,
+    emails: List<Email>,
     onEmailClick: (email: Email, cardBoundsInRoot: Rect, topLeftCornerPx: Float) -> Unit,
+    onStarChanged: (Email, Boolean) -> Unit,
     onReply: (Email) -> Unit,
+    onArchive: (Email) -> Unit,
+    onDelete: (Email) -> Unit,
     modifier: Modifier = Modifier,
     scrollConnection: NestedScrollConnection? = null,
     listState: LazyListState = rememberLazyListState(),
 ) {
-    val emails by viewModel.emails.collectAsStateWithLifecycle()
     var menuEmail by remember { mutableStateOf<Email?>(null) }
     val layoutDirection = LocalLayoutDirection.current
     val statusBars = WindowInsets.statusBars.asPaddingValues()
@@ -75,7 +70,7 @@ fun HomeScreen(
                 email = email,
                 onClick = onEmailClick,
                 onLongClick = { menuEmail = it },
-                onStarChanged = { e, starred -> viewModel.setStarred(e, starred) },
+                onStarChanged = onStarChanged,
             )
         }
     }
@@ -93,8 +88,8 @@ fun HomeScreen(
             onItemClick = { item ->
                 when (item.id) {
                     "reply", "reply_all", "forward" -> onReply(email)
-                    "archive" -> viewModel.archive(email)
-                    "delete" -> viewModel.delete(email)
+                    "archive" -> onArchive(email)
+                    "delete" -> onDelete(email)
                 }
                 menuEmail = null
             },

@@ -20,11 +20,9 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
-/** In-memory source of the current user's accounts and their contacts. */
 @Inject
 @SingleIn(AppScope::class)
 class AccountStore {
-
     private val allUserAccounts = listOf(
         Account(1L, 0L, "Jeff", "Hansen", "hikingfan@gmail.com", "hkngfan@outside.com", Res.drawable.avatar_10, true),
         Account(2L, 0L, "Jeff", "H", "jeffersonloveshiking@gmail.com", "jeffersonloveshiking@work.com", Res.drawable.avatar_2),
@@ -46,19 +44,14 @@ class AccountStore {
 
     private val _userAccounts = MutableStateFlow(allUserAccounts)
 
-    /** All accounts owned by the current user; exactly one is [Account.isCurrentAccount]. */
     val userAccounts: StateFlow<List<Account>> = _userAccounts.asStateFlow()
 
-    /** The user's default account. */
     fun getDefaultUserAccount(): Account = allUserAccounts.first()
 
-    /** All accounts owned by the current user. */
     fun getAllUserAccounts(): List<Account> = _userAccounts.value
 
-    /** Whether the given uid is an account owned by the current user. */
     fun isUserAccount(uid: Long): Boolean = allUserAccounts.any { it.uid == uid }
 
-    /** Mark [accountId] as the active account. Returns true if anything changed. */
     fun setCurrentUserAccount(accountId: Long): Boolean {
         val current = _userAccounts.value
         val updated = current.map { it.copy(isCurrentAccount = it.id == accountId) }
@@ -67,7 +60,6 @@ class AccountStore {
         return true
     }
 
-    /** The contact with the given [accountId]. */
     fun getContactAccountById(accountId: Long): Account =
         allUserContactAccounts.firstOrNull { it.id == accountId } ?: allUserContactAccounts.first()
 }

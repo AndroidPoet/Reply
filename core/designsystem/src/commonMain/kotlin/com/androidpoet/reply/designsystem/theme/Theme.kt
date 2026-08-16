@@ -1,7 +1,5 @@
 package com.androidpoet.reply.designsystem.theme
 
-import androidx.compose.animation.core.CubicBezierEasing
-import androidx.compose.animation.core.Easing
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.shape.CornerBasedShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -23,7 +21,6 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import kotlin.math.ln
 
-/** `ShapeAppearance.Reply.*` — small 24dp (chips, starred-card corner), medium 0dp (cards), large 12dp (sheets). */
 @Immutable
 data class ReplyShapes(
     val small: CornerBasedShape = RoundedCornerShape(24.dp),
@@ -35,23 +32,6 @@ data class ReplyShapes(
     val largeCornerRadius: Dp get() = 12.dp
 }
 
-/** `res/values/motion.xml` + theme interpolators. */
-object ReplyMotion {
-    const val DURATION_LARGE = 300
-    const val DURATION_MEDIUM = 225
-    const val DURATION_SMALL = 175
-
-    /** fast_out_slow_in — `motionInterpolatorPersistent`. */
-    val Persistent: Easing = CubicBezierEasing(0.4f, 0f, 0.2f, 1f)
-
-    /** decelerate_cubic — `motionInterpolatorIncoming`. */
-    val Incoming: Easing = CubicBezierEasing(0f, 0f, 0.2f, 1f)
-
-    /** accelerate_cubic — `motionInterpolatorOutgoing`. */
-    val Outgoing: Easing = CubicBezierEasing(0.4f, 0f, 1f, 1f)
-}
-
-/** Grid + component dimensions from `dimens.xml` / `layout.xml`. */
 object ReplyDimens {
     val grid0_25 = 2.dp
     val grid0_5 = 4.dp
@@ -83,7 +63,6 @@ object ReplyDimens {
 
 val LocalReplyShapes = staticCompositionLocalOf { ReplyShapes() }
 
-/** Entry point for all Reply theme values, mirroring the `MaterialTheme` object. */
 object ReplyTheme {
     val colors: ReplyColors
         @Composable @ReadOnlyComposable get() = LocalReplyColors.current
@@ -93,10 +72,6 @@ object ReplyTheme {
         @Composable @ReadOnlyComposable get() = LocalReplyShapes.current
 }
 
-/**
- * Material's dark-theme elevation overlay: blend `onSurface` over [surface] at an alpha derived
- * from [elevation] (`4.5 * ln(elevation + 1) + 2` percent). No-op in light theme.
- */
 @Composable
 @ReadOnlyComposable
 fun ReplyColors.elevated(surface: Color, elevation: Dp): Color {
@@ -151,10 +126,6 @@ private fun ReplyColors.toMaterialColorScheme(): ColorScheme = if (isDark) {
     )
 }
 
-/**
- * Applies the Reply theme (colours, Work Sans type scale, shapes) and bridges the subset that
- * Material 3 components read from [MaterialTheme].
- */
 @Composable
 fun ReplyTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),

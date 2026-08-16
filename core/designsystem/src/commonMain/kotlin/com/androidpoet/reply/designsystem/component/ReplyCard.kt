@@ -28,10 +28,6 @@ import com.androidpoet.reply.designsystem.theme.elevated
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.painterResource
 
-/**
- * `MaterialCardView` in Reply's `MediumComponent` shape (0dp corners), `colorSurface`, with an
- * independently animatable top-left corner (used to signal a starred email at 24dp).
- */
 @Composable
 fun ReplyCard(
     modifier: Modifier = Modifier,
@@ -55,7 +51,6 @@ fun ReplyCard(
     }
 }
 
-/** Circular-cropped avatar (`glideCircularCrop`). */
 @Composable
 fun Avatar(
     image: DrawableResource,
@@ -73,7 +68,6 @@ fun Avatar(
     )
 }
 
-/** 1dp `@drawable/divider` tinted `color_on_surface_divider`. */
 @Composable
 fun ReplyDivider(
     modifier: Modifier = Modifier,
@@ -87,7 +81,6 @@ fun ReplyDivider(
     )
 }
 
-/** Text with an explicit `TextAppearance` style + emphasis colour; the everyday Reply label. */
 @Composable
 fun ReplyText(
     text: String,

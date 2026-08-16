@@ -32,7 +32,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
@@ -59,13 +58,6 @@ import com.androidpoet.reply.designsystem.theme.ReplyTheme
 import com.androidpoet.reply.designsystem.theme.elevated
 import org.jetbrains.compose.resources.painterResource
 
-/**
- * `BottomNavDrawerFragment`: a bottom-sheet navigation drawer with a scrim, a `primarySurfaceVariant`
- * backdrop holding the account picker, and a `primarySurface` foreground (12dp corners + a
- * semicircular cutout cradling the 48dp profile image) holding the mailbox list.
- *
- * Draw this **below** the bottom app bar so the bar stays on top of the sheet.
- */
 @Composable
 fun BottomNavDrawer(
     state: BottomNavDrawerState,
@@ -91,13 +83,9 @@ fun BottomNavDrawer(
             state.density = density.density
         }
 
-        // ForegroundSheetTransformSlideAction: between half-expanded (0) and a quarter of the way
-        // to expanded (0.25) the cutout/corners flatten, the avatar shrinks away and the foreground
-        // slides up over its 24dp top margin; the status-bar inset is padded in over 0..0.9.
         val foregroundInterpolation = 1f - (state.expandFraction / 0.25f).coerceIn(0f, 1f)
         val topInsetProgress = (state.expandFraction / 0.9f).coerceIn(0f, 1f)
 
-        // Scrim — fades in with the sheet and closes it on tap.
         val open = state.openFraction
         if (open > 0f) {
             Box(
@@ -115,7 +103,6 @@ fun BottomNavDrawer(
         val dragState = rememberDraggableState { delta -> state.dragBy(delta) }
         val bgShape = RoundedCornerShape(topStart = ReplyDimens.plane16 - 4.dp, topEnd = ReplyDimens.plane16 - 4.dp)
 
-        // The sheet.
         Box(
             Modifier
                 .fillMaxSize()
@@ -128,7 +115,6 @@ fun BottomNavDrawer(
                     onDragStopped = { velocity -> state.settle(velocity) },
                 ),
         ) {
-            // ---- Background container: account picker ----
             Box(
                 Modifier
                     .fillMaxSize()
@@ -154,10 +140,8 @@ fun BottomNavDrawer(
                         )
                     }
                 }
-
             }
 
-            // ---- Foreground container: mailbox navigation ----
             if (state.sandwichState != SandwichState.OPEN) {
                 val shapeInterpolation = (1f - state.navProgress) * foregroundInterpolation
                 val fgShape = remember(shapeInterpolation) {
@@ -215,7 +199,6 @@ fun BottomNavDrawer(
                 }
             }
 
-            // Profile image, cradled in the foreground's top edge.
             val imageVisibility = (1f - state.navProgress) * foregroundInterpolation
             Box(
                 Modifier
@@ -249,7 +232,6 @@ fun BottomNavDrawer(
     }
 }
 
-/** `nav_menu_item_layout.xml`: 56dp checkable row, 32dp side padding, 32dp icon–text gap. */
 @Composable
 private fun NavMenuRow(
     item: NavigationItem.Menu,
@@ -272,7 +254,6 @@ private fun NavMenuRow(
     }
 }
 
-/** `nav_email_folder_item_layout.xml`. */
 @Composable
 private fun NavFolderRow(name: String) {
     val colors = ReplyTheme.colors
@@ -295,7 +276,6 @@ private fun NavFolderRow(name: String) {
     }
 }
 
-/** `nav_divider_item_layout.xml`: a 200dp hairline above an overline subtitle. */
 @Composable
 private fun NavDividerRow(title: String) {
     val colors = ReplyTheme.colors
@@ -315,7 +295,6 @@ private fun NavDividerRow(title: String) {
     }
 }
 
-/** `account_item_layout.xml`: 64dp row, 48dp padded avatar, email, check mark for the active account. */
 @Composable
 private fun AccountRow(
     account: Account,

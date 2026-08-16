@@ -16,31 +16,21 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import com.androidpoet.reply.designsystem.motion.Durations
 import com.androidpoet.reply.designsystem.motion.Interpolators
-import kotlinx.coroutines.launch
 import kotlin.math.abs
 import kotlin.math.ln
+import kotlinx.coroutines.launch
 
-/** How strongly the drag is damped as it nears the threshold (`swipeReboundingElasticity`). */
 private const val SWIPE_REBOUNDING_ELASTICITY = 0.8f
 
-/** Fraction of the item width that counts as a completed swipe (`trueSwipeThreshold`). */
 const val TRUE_SWIPE_THRESHOLD = 0.4f
 
-/**
- * State for `ReboundingSwipeActionCallback`: a rightward swipe that never dismisses. The card is
- * translated with a logarithmic spring, and once the drag passes [TRUE_SWIPE_THRESHOLD] the item
- * is flagged so the release triggers the action.
- */
 @Stable
 class ReboundingSwipeState {
-    /** Raw pointer displacement (>= 0). */
     var rawDx by mutableFloatStateOf(0f)
         private set
 
-    /** Width of the item, set from layout. */
     var width by mutableFloatStateOf(0f)
 
-    /** Whether, during the current contiguous interaction, the threshold has been met at least once. */
     var hasMetThresholdOnce by mutableStateOf(false)
         private set
 
@@ -49,7 +39,6 @@ class ReboundingSwipeState {
 
     val thresholdMet: Boolean get() = swipePercentage >= TRUE_SWIPE_THRESHOLD
 
-    /** `translateReboundingView`: progressively decrease the translation to give a spring feel. */
     val translationX: Float
         get() {
             if (width == 0f || rawDx <= 0f) return 0f
@@ -78,11 +67,6 @@ class ReboundingSwipeState {
 @Composable
 fun rememberReboundingSwipeState(): ReboundingSwipeState = remember { ReboundingSwipeState() }
 
-/**
- * Attach the rebounding horizontal swipe. On release the card animates back like
- * `ItemTouchHelper`'s recover animation; if the threshold was reached, [onRebounded] fires after
- * it completes (matching `clearView`).
- */
 @Composable
 fun Modifier.reboundingSwipe(
     state: ReboundingSwipeState,
@@ -100,7 +84,7 @@ fun Modifier.reboundingSwipe(
             scope.launch {
                 val met = state.hasMetThresholdOnce
                 state.settle.snapTo(state.rawDx)
-                // ItemTouchHelper.RecoverAnimation: 250ms, AccelerateDecelerateInterpolator.
+
                 state.settle.animateTo(
                     0f,
                     tween(Durations.ITEM_TOUCH_HELPER_RECOVER, easing = Interpolators.AccelerateDecelerate),

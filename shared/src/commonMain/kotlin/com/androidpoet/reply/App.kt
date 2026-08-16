@@ -12,7 +12,6 @@ import com.androidpoet.reply.di.AppGraph
 import com.androidpoet.reply.di.LocalAppGraph
 import com.androidpoet.reply.navigation.ReplyApp
 
-/** In-app theme override, chosen from the settings sheet (`dark_theme_bottom_sheet_menu`). */
 enum class ThemeMode { LIGHT, DARK, SYSTEM }
 
 @Composable
@@ -28,10 +27,7 @@ fun App(
     }
     CompositionLocalProvider(LocalAppGraph provides appGraph) {
         ReplyTheme(darkTheme = darkTheme) {
-            ReplyApp(
-                themeMode = themeMode,
-                onThemeModeChange = { themeMode = it },
-            )
+            ReplyApp(onThemeModeChange = { themeMode = it })
         }
     }
 }

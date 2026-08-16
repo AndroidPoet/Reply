@@ -16,14 +16,6 @@ private const val ARC_HALF = 180f
 private const val ANGLE_UP = 270f
 private const val ANGLE_LEFT = 180f
 
-/**
- * Port of MDC's `BottomAppBarTopEdgeTreatment` / Reply's `SemiCircleEdgeCutoutTreatment`.
- *
- * Appends to [path] a top edge of the given [length] (starting at x = 0, y = 0) containing a
- * semicircular cradle of [cutoutDiameter] + 2 * [cutoutMargin], whose two shoulders are rounded by
- * [cutoutRoundedCornerRadius]. [interpolation] morphs the cradle from fully present (1) to a
- * flat edge (0), exactly like `MaterialShapeDrawable.interpolation`.
- */
 fun Path.addCutoutTopEdge(
     length: Float,
     cutoutMargin: Float,
@@ -32,7 +24,7 @@ fun Path.addCutoutTopEdge(
     cutoutDiameter: Float,
     cutoutHorizontalOffset: Float = 0f,
     interpolation: Float = 1f,
-    /** X of the edge's start; all coordinates below are shifted by this. */
+
     startX: Float = 0f,
 ) {
     if (cutoutDiameter == 0f) {
@@ -47,7 +39,6 @@ fun Path.addCutoutTopEdge(
     val verticalOffset = interpolation * cutoutVerticalOffset + (1 - interpolation) * cradleRadius
     val verticalOffsetRatio = verticalOffset / cradleRadius
     if (verticalOffsetRatio >= 1.0f) {
-        // The cradle circle sits entirely above the edge — nothing to cut.
         lineTo(startX + length, 0f)
         return
     }
@@ -63,9 +54,8 @@ fun Path.addCutoutTopEdge(
     val cornerRadiusArcLength = toDegrees(atan(distanceX / distanceY))
     val cutoutArcOffset = ARC_QUARTER - cornerRadiusArcLength
 
-    // Line up to the left shoulder.
     lineTo(leftRoundedCornerCircleX - roundedCornerOffset, 0f)
-    // Left shoulder arc.
+
     arcTo(
         rect = Rect(
             left = leftRoundedCornerCircleX - roundedCornerOffset,
@@ -77,7 +67,7 @@ fun Path.addCutoutTopEdge(
         sweepAngleDegrees = cornerRadiusArcLength,
         forceMoveTo = false,
     )
-    // The cradle itself.
+
     arcTo(
         rect = Rect(
             left = middle - cradleRadius,
@@ -89,7 +79,7 @@ fun Path.addCutoutTopEdge(
         sweepAngleDegrees = cutoutArcOffset * 2 - ARC_HALF,
         forceMoveTo = false,
     )
-    // Right shoulder arc.
+
     arcTo(
         rect = Rect(
             left = rightRoundedCornerCircleX - roundedCornerOffset,
@@ -106,13 +96,6 @@ fun Path.addCutoutTopEdge(
 
 private fun toDegrees(radians: Float): Float = (radians * 180.0 / kotlin.math.PI).toFloat()
 
-/**
- * A rectangle whose top edge carries a FAB / avatar cradle and whose top corners are rounded by
- * [topCornerRadius] (scaled by [interpolation], like MDC's shape interpolation).
- *
- * Used for the bottom app bar (0dp corners) and the bottom navigation drawer's foreground sheet
- * (12dp `LargeComponent` corners + a 32dp profile-image cutout).
- */
 class CutoutTopEdgeShape(
     private val cutoutMargin: Dp,
     private val cutoutRoundedCornerRadius: Dp,
@@ -129,7 +112,7 @@ class CutoutTopEdgeShape(
             if (corner > 0f) {
                 path.arcTo(Rect(0f, 0f, corner * 2, corner * 2), 180f, 90f, false)
             }
-            // Top edge between the two rounded corners.
+
             path.addCutoutTopEdge(
                 length = size.width - corner * 2,
                 cutoutMargin = cutoutMargin.toPx(),

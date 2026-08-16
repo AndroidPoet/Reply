@@ -1,5 +1,7 @@
 package com.androidpoet.reply.data
 
+import androidx.compose.runtime.Immutable
+@Immutable
 data class Email(
     val id: Long,
     val sender: Account,

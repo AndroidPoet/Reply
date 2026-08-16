@@ -24,7 +24,6 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import kotlin.math.roundToInt
 
-/** Corner radii (px) of a container, in the order MDC's `ShapeAppearanceModel` uses. */
 @Immutable
 data class Corners(val topLeft: Float = 0f, val topRight: Float = 0f, val bottomRight: Float = 0f, val bottomLeft: Float = 0f) {
     companion object {
@@ -32,10 +31,6 @@ data class Corners(val topLeft: Float = 0f, val topRight: Float = 0f, val bottom
     }
 }
 
-/**
- * `MaterialContainerTransform.ProgressThresholdsGroup`. Fractions of the (already interpolated)
- * transition progress within which each sub-animation runs.
- */
 @Immutable
 data class ProgressThresholds(
     val fadeStart: Float,
@@ -48,23 +43,12 @@ data class ProgressThresholds(
     val shapeMaskEnd: Float,
 ) {
     companion object {
-        /** `DEFAULT_ENTER_THRESHOLDS`. */
         val Enter = ProgressThresholds(0f, 0.25f, 0f, 1f, 0f, 1f, 0f, 0.75f)
 
-        /** `DEFAULT_RETURN_THRESHOLDS`. */
         val Return = ProgressThresholds(0.60f, 0.90f, 0f, 1f, 0f, 0.90f, 0.30f, 0.90f)
     }
 }
 
-/**
- * Everything a container transform needs. All geometry is in px, in the coordinate space of the
- * composable hosting [ContainerTransform] (normally the app root).
- *
- * Semantics follow `MaterialContainerTransform` with `FADE_MODE_IN` and `FIT_MODE_WIDTH`:
- * the start content stays opaque and is scaled with the container, the end content is drawn on
- * top and fades in over the fade thresholds; the container's width, height, corners and colour
- * morph between the two.
- */
 @Immutable
 data class ContainerTransformSpec(
     val startBounds: Rect,
@@ -80,11 +64,6 @@ data class ContainerTransformSpec(
     val endContent: @Composable () -> Unit,
 )
 
-/**
- * Draws one frame of a container transform at [progress] (0..1, **already interpolated** with the
- * transition's easing, like MDC feeds `updateProgress`). Place it in a full-size Box at the
- * root so [ContainerTransformSpec] bounds line up.
- */
 @Composable
 fun ContainerTransform(
     spec: ContainerTransformSpec,
@@ -101,18 +80,15 @@ fun ContainerTransform(
     val shapeMaskProgress = lerpRange(0f, 1f, t.shapeMaskStart, t.shapeMaskEnd, progress)
     val fadeProgress = lerpRange(0f, 1f, t.fadeStart, t.fadeEnd, progress)
 
-    // FitModeEvaluators.WIDTH
     val startScale = lerpRange(1f, e.width / s.width, 0f, 1f, scaleProgress)
     val endScale = lerpRange(s.width / e.width, 1f, 0f, 1f, scaleProgress)
-    val currentWidth = s.width * startScale // == e.width * endScale
+    val currentWidth = s.width * startScale
     val currentStartHeight = s.height * startScale
     val currentEndHeight = e.height * endScale
 
-    // Linear motion path from the start's top-centre to the end's top-centre.
     val motionX = s.center.x + (e.center.x - s.center.x) * scaleProgress
     val motionY = s.top + (e.top - s.top) * scaleProgress
 
-    // The mask: width from fit-mode, height between the two current heights.
     val maskLeft = motionX - currentWidth / 2f
     val maskTop = motionY
     val maskHeight = lerpRange(currentStartHeight, currentEndHeight, 0f, 1f, scaleMaskProgress)
@@ -136,7 +112,6 @@ fun ContainerTransform(
                 .clip(corners)
                 .background(color),
         ) {
-            // Start content: laid out at its natural size, scaled about its top-left.
             Box(
                 Modifier
                     .wrapContentSize(Alignment.TopStart, unbounded = true)
@@ -149,7 +124,7 @@ fun ContainerTransform(
             ) {
                 spec.startContent()
             }
-            // End content: fades in on top (FADE_MODE_IN), scaled about its top-left.
+
             Box(
                 Modifier
                     .wrapContentSize(Alignment.TopStart, unbounded = true)

@@ -86,7 +86,7 @@ fade-mode / threshold model), `Interpolators` (the platform interpolators), and 
 ## Architecture
 
 ```
-:shared               # App shell: App, ReplyApp (Nav3 back stack + transitions, container transforms, bottom bar, drawer), Metro AppGraph
+:shared               # App shell: App, ReplyApp, ReplyNavigator (Nav3 back stack + Material transitions), TransformOverlay, ReplyBottomBar, Metro AppGraph
 :core:data            # Account, Email, EmailAttachment, Mailbox, EmailStore, AccountStore (+ image resources)
 :core:designsystem    # ReplyTheme, palette/type/shape/motion, custom components, cutout shape, fonts/icons
 :feature:home         # Mailbox list, swipe-to-star, long-press menu

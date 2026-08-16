@@ -1,10 +1,9 @@
 package com.androidpoet.reply.data
 
+import androidx.compose.runtime.Immutable
 import org.jetbrains.compose.resources.DrawableResource
 
-/**
- * An account which can belong to the current user (one of their sign-in identities) or a contact.
- */
+@Immutable
 data class Account(
     val id: Long,
     val uid: Long,

@@ -14,11 +14,9 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
 
-/** In-memory mail store. Every mutation publishes a fresh list through [emails]. */
 @Inject
 @SingleIn(AppScope::class)
 class EmailStore(private val accounts: AccountStore) {
-
     private var nextId = 100L
 
     private val _emails = MutableStateFlow(
@@ -169,10 +167,8 @@ class EmailStore(private val accounts: AccountStore) {
 
     val emails: StateFlow<List<Email>> = _emails.asStateFlow()
 
-    /** Emails belonging to [mailbox]. STARRED is a virtual mailbox spanning all others. */
     fun getEmails(mailbox: Mailbox): Flow<List<Email>> = emails.map { it.inMailbox(mailbox) }
 
-    /** Synchronous snapshot of [getEmails]; lets screens render their first frame without a gap. */
     fun snapshot(mailbox: Mailbox): List<Email> = _emails.value.inMailbox(mailbox)
 
     private fun List<Email>.inMailbox(mailbox: Mailbox): List<Email> = when (mailbox) {
@@ -182,10 +178,8 @@ class EmailStore(private val accounts: AccountStore) {
 
     fun get(id: Long): Email? = _emails.value.firstOrNull { it.id == id }
 
-    /** Create a new, blank [Email] from the default account. */
     fun create(): Email = Email(nextId++, accounts.getDefaultUserAccount())
 
-    /** Create a new [Email] which replies to [replyToId]. */
     fun createReplyTo(replyToId: Long): Email {
         val replyTo = get(replyToId) ?: return create()
         return Email(
@@ -198,19 +192,16 @@ class EmailStore(private val accounts: AccountStore) {
         )
     }
 
-    /** Move the email with [id] to trash. */
     fun delete(id: Long) = update(id) { copy(mailbox = Mailbox.TRASH) }
 
     fun toggleStar(id: Long) = update(id) { copy(isStarred = !isStarred) }
 
     fun setStarred(id: Long, starred: Boolean) = update(id) { copy(isStarred = starred) }
 
-    /** Replace the email with [id] by the result of [with]. */
     fun update(id: Long, with: Email.() -> Email) {
         _emails.value = _emails.value.map { if (it.id == id) it.with() else it }
     }
 
-    /** Folders by which emails can be categorised (display only). */
     fun getAllFolders(): List<String> = listOf(
         "Receipts",
         "Pine Elementary",

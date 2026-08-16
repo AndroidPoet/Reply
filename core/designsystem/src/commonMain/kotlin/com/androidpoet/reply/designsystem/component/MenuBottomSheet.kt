@@ -30,7 +30,6 @@ import com.androidpoet.reply.designsystem.theme.elevated
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.painterResource
 
-/** One row of a [MenuBottomSheet]; [icon] is optional (the theme picker has none). */
 @Immutable
 data class MenuSheetItem(
     val id: String,
@@ -38,20 +37,18 @@ data class MenuSheetItem(
     val icon: DrawableResource? = null,
 )
 
-/**
- * `MenuBottomSheetDialogFragment`: a modal sheet in `Widget.MaterialComponents.BottomSheet.Modal`
- * style (12dp top corners, 16dp elevation overlay) hosting a `NavigationView`-style menu list.
- */
 @Composable
 fun MenuBottomSheet(
     items: List<MenuSheetItem>,
     onDismiss: () -> Unit,
     onItemClick: (MenuSheetItem) -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     val colors = ReplyTheme.colors
     val state = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     ModalBottomSheet(
         onDismissRequest = onDismiss,
+        modifier = modifier,
         sheetState = state,
         shape = RoundedCornerShape(topStart = ReplyDimens.plane16 - 4.dp, topEnd = ReplyDimens.plane16 - 4.dp),
         containerColor = colors.elevated(colors.surface, ReplyDimens.plane16),

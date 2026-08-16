@@ -9,10 +9,6 @@ import dev.zacsweers.metro.AppScope
 import dev.zacsweers.metro.DependencyGraph
 import dev.zacsweers.metro.createGraph
 
-/**
- * Compile-time dependency graph (Metro). Everything is in-memory, so the graph has no external
- * inputs; the stores are `@SingleIn(AppScope)` and shared across screens.
- */
 @DependencyGraph(AppScope::class)
 interface AppGraph {
     val emailStore: EmailStore

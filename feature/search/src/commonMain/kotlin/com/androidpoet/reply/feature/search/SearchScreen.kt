@@ -48,7 +48,6 @@ import com.androidpoet.reply.designsystem.theme.ReplyDimens
 import com.androidpoet.reply.designsystem.theme.ReplyTheme
 import org.jetbrains.compose.resources.painterResource
 
-/** `fragment_search.xml`: a surface-coloured search page with recent-suggestion sections. */
 @Composable
 fun SearchScreen(
     onBack: () -> Unit,
@@ -66,7 +65,6 @@ fun SearchScreen(
             .background(colors.surface)
             .windowInsetsPadding(WindowInsets.statusBars),
     ) {
-        // Toolbar: back · field · mic
         Row(
             Modifier
                 .fillMaxWidth()

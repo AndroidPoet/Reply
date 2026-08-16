@@ -4,7 +4,6 @@ import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
 
-/** Raw Reply palette — mirrors `res/values/color.xml` of the Material Study. */
 object ReplyPalette {
     val White50 = Color(0xFFFFFFFF)
     val Black800 = Color(0xFF121212)
@@ -28,7 +27,6 @@ object ReplyPalette {
     val Black900Alpha060 = Color(0x99000000)
 }
 
-/** Text/icon emphasis alphas from `Theme.Reply`. */
 object Emphasis {
     const val HIGH = 0.87f
     const val MEDIUM = 0.60f
@@ -36,11 +34,6 @@ object Emphasis {
     const val DIVIDER = 0.10f
 }
 
-/**
- * The Material 2 style colour roles used by Reply. Compose Material 3 has no
- * primaryVariant / primarySurface roles, so the theme carries its own scheme and maps a subset
- * onto [androidx.compose.material3.ColorScheme] for the stock components it still uses.
- */
 @Immutable
 data class ReplyColors(
     val primary: Color,
@@ -55,11 +48,11 @@ data class ReplyColors(
     val onBackground: Color,
     val onSurface: Color,
     val onError: Color,
-    /** `colorPrimarySurface`: primary in light, surface in dark. Bottom app bar + drawer. */
+
     val primarySurface: Color,
-    /** `colorPrimarySurfaceVariant`: primaryVariant in light, surface in dark. Drawer backdrop. */
+
     val primarySurfaceVariant: Color,
-    /** `colorOnPrimarySurface`. */
+
     val onPrimarySurface: Color,
     val scrim: Color,
     val statusBar: Color,

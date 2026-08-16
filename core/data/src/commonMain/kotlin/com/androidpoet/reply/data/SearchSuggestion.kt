@@ -1,7 +1,9 @@
 package com.androidpoet.reply.data
 
+import androidx.compose.runtime.Immutable
 enum class SearchSuggestionIcon { SCHEDULE, HOME }
 
+@Immutable
 data class SearchSuggestion(
     val icon: SearchSuggestionIcon,
     val title: String,

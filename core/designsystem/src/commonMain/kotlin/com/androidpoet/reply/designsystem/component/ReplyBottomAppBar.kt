@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.windowInsetsBottomHeight
-import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
@@ -36,17 +35,8 @@ import com.androidpoet.reply.designsystem.theme.ReplyDimens
 import com.androidpoet.reply.designsystem.theme.ReplyTheme
 import com.androidpoet.reply.designsystem.theme.elevated
 
-/** Total height the bar assembly reserves above the bottom edge (bar + FAB overhang). */
 val BottomAppBarFabOverhang: Dp = ReplyDimens.fabSize / 2
 
-/**
- * `Widget.MaterialComponents.BottomAppBar.PrimarySurface` with a centred FAB cradle
- * (`fabCradleMargin` 8dp, `fabCradleRoundedCornerRadius` 32dp) — the Reply bottom bar.
- *
- * [navigation] is placed at the start (the chevron / logo / title cluster) and [actions] at the end.
- * The bar itself is 56dp tall plus the navigation-bar inset; call sites layer [ReplyFab] over it
- * with its centre on the bar's top edge (see [BottomAppBarWithFab]).
- */
 @Composable
 fun ReplyBottomAppBar(
     modifier: Modifier = Modifier,
@@ -84,7 +74,7 @@ fun ReplyBottomAppBar(
                 actions()
             }
         }
-        // Reserve room for the system navigation bar under the bar content.
+
         Box(
             Modifier
                 .align(Alignment.BottomCenter)
@@ -94,10 +84,6 @@ fun ReplyBottomAppBar(
     }
 }
 
-/**
- * Lays [bar] at the bottom and [fab] centred on its top edge (cradleVerticalOffset = 0), so the
- * FAB's centre sits exactly on the bar's top line, matching `app:layout_anchor` on MDC's FAB.
- */
 @Composable
 fun BottomAppBarWithFab(
     modifier: Modifier = Modifier,
@@ -118,11 +104,6 @@ fun BottomAppBarWithFab(
     }
 }
 
-/**
- * The 56dp secondary-coloured FAB (`Widget.MaterialComponents.FloatingActionButton`, 6dp
- * elevation). [icon] is drawn centred at 24dp — pair with [EditReplyIcon] for the
- * `asl_edit_reply` morph.
- */
 @Composable
 fun ReplyFab(
     onClick: () -> Unit,
@@ -149,7 +130,6 @@ fun ReplyFab(
     }
 }
 
-/** A 48dp `?attr/actionBarItemBackground` style icon button (12dp padding, unbounded ripple). */
 @Composable
 fun ReplyIconButton(
     icon: Painter,
@@ -183,13 +163,3 @@ fun ReplyIconButton(
     }
 }
 
-/** Fills the navigation-bar inset with [color]; used under sheets that scroll behind the system bar. */
-@Composable
-fun NavigationBarSpacer(color: Color = Color.Transparent, modifier: Modifier = Modifier) {
-    Box(
-        modifier
-            .fillMaxWidth()
-            .background(color)
-            .windowInsetsPadding(WindowInsets.navigationBars),
-    )
-}

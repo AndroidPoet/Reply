@@ -21,13 +21,12 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.androidpoet.reply.data.Email
 import com.androidpoet.reply.data.EmailAttachment
 import com.androidpoet.reply.designsystem.component.Avatar
@@ -43,17 +42,12 @@ import org.jetbrains.compose.resources.painterResource
 
 private const val MAX_GRID_SPANS = 3
 
-/**
- * `fragment_email.xml`: the opened email inside a full-width card, with a masonry grid of
- * attachments. The card is the shared element the home card morphs into.
- */
 @Composable
 fun EmailScreen(
-    viewModel: EmailViewModel,
+    email: Email?,
     onNavigateUp: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val email by viewModel.email.collectAsStateWithLifecycle()
     val colors = ReplyTheme.colors
     val statusBars = WindowInsets.statusBars.asPaddingValues()
     val navBars = WindowInsets.navigationBars.asPaddingValues()
@@ -64,7 +58,7 @@ fun EmailScreen(
             .background(colors.background),
     ) {
         val topPadding = statusBars.calculateTopPadding() + ReplyDimens.grid1
-        // NestedScrollView fillViewport="true": the card is at least as tall as the viewport.
+
         val minCardHeight = maxHeight - topPadding
         Column(
             Modifier
@@ -82,16 +76,11 @@ fun EmailScreen(
     }
 }
 
-/**
- * The detail card (`fragment_email.xml`'s `MaterialCardView`), full width, at least [minHeight]
- * tall. Public so the app shell can render it as the end view of the card → detail container
- * transform.
- */
 @Composable
 fun EmailDetailCard(
     email: Email,
     onNavigateUp: () -> Unit,
-    minHeight: androidx.compose.ui.unit.Dp,
+    minHeight: Dp,
     modifier: Modifier = Modifier,
 ) {
     val navBars = WindowInsets.navigationBars.asPaddingValues()
@@ -111,7 +100,7 @@ fun EmailDetailCard(
 private fun EmailContent(
     email: Email,
     onNavigateUp: () -> Unit,
-    bottomPadding: androidx.compose.ui.unit.Dp,
+    bottomPadding: Dp,
 ) {
     val colors = ReplyTheme.colors
     val typography = ReplyTheme.typography
@@ -129,7 +118,7 @@ private fun EmailContent(
                     .weight(1f)
                     .padding(top = ReplyDimens.grid1, end = ReplyDimens.grid1),
             )
-            // Centred over the sender avatar column (42dp) — the 56dp touch target overflows it.
+
             Box(
                 Modifier
                     .width(ReplyDimens.emailSenderProfileImageSize)
@@ -197,11 +186,6 @@ private fun EmailContent(
     }
 }
 
-/**
- * `EmailAttachmentGridAdapter`: a 3-span grid where each item takes 1–3 spans. The original
- * randomises spans per bind; here the sequence is fixed so the layout is stable across
- * recompositions (and matches the reference: one full-width shot above three portraits).
- */
 private val SPAN_PATTERN = listOf(3, 1, 1, 1, 2, 1, 1, 2, 3)
 
 @Composable
@@ -239,7 +223,7 @@ private fun AttachmentGrid(
                             .height(200.dp - ReplyDimens.grid0_25 * 2),
                     )
                 }
-                // Keep partial rows left-aligned at their span width.
+
                 val used = items.sumOf { it.second }
                 if (used < MAX_GRID_SPANS) {
                     Box(Modifier.weight((MAX_GRID_SPANS - used).toFloat()))

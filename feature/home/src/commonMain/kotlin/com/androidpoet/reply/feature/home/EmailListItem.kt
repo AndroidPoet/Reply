@@ -23,47 +23,41 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.drawscope.scale
 import androidx.compose.ui.graphics.drawscope.translate
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.graphics.painter.Painter
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.boundsInRoot
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.unit.dp
 import com.androidpoet.reply.data.Email
 import com.androidpoet.reply.designsystem.component.Avatar
 import com.androidpoet.reply.designsystem.component.ReplyCard
 import com.androidpoet.reply.designsystem.component.ReplyText
+import com.androidpoet.reply.designsystem.motion.Durations
+import com.androidpoet.reply.designsystem.motion.Interpolators
 import com.androidpoet.reply.designsystem.resources.Res
 import com.androidpoet.reply.designsystem.resources.ic_twotone_star_on_background
 import com.androidpoet.reply.designsystem.theme.ReplyDimens
-import com.androidpoet.reply.designsystem.theme.ReplyMotion
 import com.androidpoet.reply.designsystem.theme.ReplyTheme
-import org.jetbrains.compose.resources.painterResource
 import kotlin.math.PI
 import kotlin.math.abs
 import kotlin.math.hypot
 import kotlin.math.sin
+import org.jetbrains.compose.resources.painterResource
 
-/** Extra scale applied to the star at the midpoint of the reveal (`iconMaxScaleAddition`). */
 private const val ICON_MAX_SCALE_ADDITION = 0.5f
 
-/**
- * `email_item_layout.xml` + `EmailViewHolder`: a surface card whose top-left corner rounds to
- * 24dp when starred, sitting on `EmailSwipeActionDrawable` (an orange circular reveal + star)
- * that a rightward rebounding swipe uncovers to toggle the star.
- */
 @Composable
 fun EmailListItem(
     email: Email,
@@ -75,10 +69,8 @@ fun EmailListItem(
 ) {
     val colors = ReplyTheme.colors
     val swipe = rememberReboundingSwipeState()
-    val starredCornerPx = ReplyDimens.grid3 // 24dp — SmallComponent corner radius
+    val starredCornerPx = ReplyDimens.grid3
 
-    // Background reveal progress: 1 when the item is "activated" (starred, or a swipe past the
-    // threshold that will star it), 0 otherwise. Animated over DURATION_MEDIUM like the drawable.
     val activated = if (swipe.hasMetThresholdOnce) !email.isStarred else email.isStarred
     val reveal = remember { Animatable(if (email.isStarred) 1f else 0f) }
     LaunchedEffect(activated) {
@@ -86,11 +78,10 @@ fun EmailListItem(
         val distance = abs(target - reveal.value)
         reveal.animateTo(
             target,
-            tween((distance * ReplyMotion.DURATION_MEDIUM).toInt(), easing = ReplyMotion.Persistent),
+            tween((distance * Durations.MEDIUM).toInt(), easing = Interpolators.FastOutSlowIn),
         )
     }
 
-    // Corner interpolation follows the swipe live, then snaps to the starred state.
     val cornerInterpolation = if (swipe.rawDx > 0f && !swipe.hasMetThresholdOnce) {
         val interpolation = (swipe.swipePercentage / TRUE_SWIPE_THRESHOLD).coerceIn(0f, 1f)
         abs((if (email.isStarred) 1f else 0f) - interpolation)
@@ -115,7 +106,6 @@ fun EmailListItem(
             .onSizeChanged { swipe.width = it.width.toFloat() }
             .clipToBounds()
             .drawBehind {
-                // EmailSwipeActionDrawable
                 val progress = reveal.value
                 val iconMargin = ReplyDimens.grid4.toPx()
                 val iconSize = 24.dp.toPx()
@@ -158,10 +148,6 @@ fun EmailListItem(
     }
 }
 
-/**
- * The card body (`email_item_layout.xml` content). Public so the app shell can draw a copy of it
- * inside the container transform that morphs the card into the email detail.
- */
 @Composable
 fun EmailCardBody(email: Email) {
     val colors = ReplyTheme.colors

@@ -14,7 +14,6 @@ import com.androidpoet.reply.designsystem.resources.work_sans_regular
 import com.androidpoet.reply.designsystem.resources.work_sans_semibold
 import org.jetbrains.compose.resources.Font
 
-/** Work Sans, the Reply brand typeface (Regular / Medium / SemiBold / Bold). */
 @Composable
 fun workSansFamily(): FontFamily = FontFamily(
     Font(Res.font.work_sans_regular, FontWeight.Normal),
@@ -23,10 +22,6 @@ fun workSansFamily(): FontFamily = FontFamily(
     Font(Res.font.work_sans_bold, FontWeight.Bold),
 )
 
-/**
- * The Material 2 type scale as customised by `TextAppearance.Reply.*`. Sizes and tracking are the
- * MaterialComponents defaults; weights are Reply's overrides.
- */
 @Immutable
 data class ReplyTypography(
     val headline2: TextStyle,

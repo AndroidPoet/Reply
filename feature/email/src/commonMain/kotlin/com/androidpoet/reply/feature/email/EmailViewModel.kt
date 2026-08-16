@@ -12,13 +12,11 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 
-/** One email, kept live so star/delete from the bottom app bar reflect immediately. */
 @AssistedInject
 class EmailViewModel(
     @Assisted val emailId: Long,
     private val emailStore: EmailStore,
 ) : ViewModel() {
-
     val email: StateFlow<Email?> = emailStore.emails
         .map { list -> list.firstOrNull { it.id == emailId } }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emailStore.get(emailId))

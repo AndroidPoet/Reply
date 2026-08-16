@@ -12,13 +12,11 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 
-/** Emails for one [Mailbox]; star changes are written straight through to the store. */
 @AssistedInject
 class HomeViewModel(
     @Assisted val mailbox: Mailbox,
     private val emailStore: EmailStore,
 ) : ViewModel() {
-
     val emails: StateFlow<List<Email>> = emailStore
         .getEmails(mailbox)
         .stateIn(viewModelScope, SharingStarted.Eagerly, emailStore.snapshot(mailbox))

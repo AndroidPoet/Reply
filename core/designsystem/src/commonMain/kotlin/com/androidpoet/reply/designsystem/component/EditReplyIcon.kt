@@ -27,16 +27,9 @@ private const val REPLY_CHEVRON_PATH = "M 7 8 L 7 5 L 0 12 L 7 19 L 7 16 L 3 12 
 
 private const val TOTAL_MS = 300f
 
-/** `t` in ms → eased 0..1 for a segment starting at [start] lasting [duration] (fast_out_slow_in). */
 private fun seg(t: Float, start: Float, duration: Float): Float =
     Interpolators.FastOutSlowIn.transform(((t - start) / duration).coerceIn(0f, 1f))
 
-/**
- * `asl_edit_reply.xml`: the FAB icon that morphs between the pencil (compose) and reply-all
- * (reply) glyphs. Reproduces `avd_edit_to_reply` / `avd_reply_to_edit` step for step —
- * pencil collapses in 100ms, the reply arrow springs in from a 30° tilt while its second
- * chevron slides in from the right, all within 300ms.
- */
 @Composable
 fun EditReplyIcon(
     activated: Boolean,
@@ -47,7 +40,6 @@ fun EditReplyIcon(
     val reply = remember { PathParser().parsePathString(REPLY_PATH).toPath() }
     val chevron = remember { PathParser().parsePathString(REPLY_CHEVRON_PATH).toPath() }
 
-    // Time in ms along the currently running AVD; direction decides which AVD.
     val time = remember { Animatable(if (activated) TOTAL_MS else 0f) }
     LaunchedEffect(activated) {
         val target = if (activated) TOTAL_MS else 0f
@@ -66,16 +58,12 @@ fun EditReplyIcon(
     }
 }
 
-/** avd_edit_to_reply: [t] is ms since the animation started (0..300). */
 private fun DrawScope.drawEditToReply(t: Float, edit: Path, reply: Path, chevron: Path, tint: Color) {
-    // group (pencil): scale 1 → 0 over 0..100ms about (12,12).
     val editScale = 1f - seg(t, 0f, 100f)
     if (editScale > 0f) {
         scale(editScale, pivot = Offset(12f, 12f)) { drawPath(edit, tint) }
     }
-    // group_1 (reply + chevron): scale 0 → 1 over 100..300 about (22,16), rotation 30 → 0 over
-    // 100..277, translateY -0.8 throughout; path_1 visible from 100ms, path_2 from 188ms;
-    // group_2 (chevron) translateX 15 → 0 over 105..300.
+
     val replyScale = seg(t, 100f, 200f)
     val rotation = 30f * (1f - seg(t, 100f, 177f))
     val chevronX = 15f * (1f - seg(t, 105f, 195f))
@@ -91,10 +79,7 @@ private fun DrawScope.drawEditToReply(t: Float, edit: Path, reply: Path, chevron
     }
 }
 
-/** avd_reply_to_edit: [t] is ms since the animation started (0..300). */
 private fun DrawScope.drawReplyToEdit(t: Float, edit: Path, reply: Path, chevron: Path, tint: Color) {
-    // group (reply + chevron): scale 1 → 0 and rotation 0 → 30 over 0..100 about (22,16),
-    // translateY -0.8; path_2 (chevron) alpha 1 → 0 over 0..31ms, group_2 translateX 0 → 15 over 0..100.
     val replyScale = 1f - seg(t, 0f, 100f)
     val rotation = 30f * seg(t, 0f, 100f)
     val chevronX = 15f * seg(t, 0f, 100f)
@@ -109,7 +94,7 @@ private fun DrawScope.drawReplyToEdit(t: Float, edit: Path, reply: Path, chevron
             if (chevronAlpha > 0f) translate(chevronX, 0f) { drawPath(chevron, tint.copy(alpha = tint.alpha * chevronAlpha)) }
         }
     }
-    // group_1 (pencil): scale 0 → 1 over 100..300 about (12,12); path_1 visible from 100ms.
+
     if (t >= 100f) {
         val editScale = seg(t, 100f, 200f)
         scale(editScale, pivot = Offset(12f, 12f)) { drawPath(edit, tint) }

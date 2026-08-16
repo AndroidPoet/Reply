@@ -11,24 +11,19 @@ import com.androidpoet.reply.designsystem.resources.ic_twotone_send
 import com.androidpoet.reply.designsystem.resources.ic_twotone_stars
 import org.jetbrains.compose.resources.DrawableResource
 
-/** Rows of the bottom navigation drawer (`NavigationModelItem`). */
 @Immutable
 sealed interface NavigationItem {
-    /** A checkable destination such as Inbox or Sent. */
     data class Menu(
         val icon: DrawableResource,
         val title: String,
         val mailbox: Mailbox,
     ) : NavigationItem
 
-    /** A section subtitle with an underline above it. */
     data class Divider(val title: String) : NavigationItem
 
-    /** A user folder (display only). */
     data class Folder(val name: String) : NavigationItem
 }
 
-/** `NavigationModel`: the fixed mailbox entries followed by the "Folders" section. */
 object NavigationModel {
     val menuItems: List<NavigationItem.Menu> = listOf(
         NavigationItem.Menu(Res.drawable.ic_twotone_inbox, "Inbox", Mailbox.INBOX),
